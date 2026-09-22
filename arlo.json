@@ -1,0 +1,11 @@
+{
+  "$schema": "https://arloui.com/schemas/arlo-config-v1.json",
+  "registry": "https://arloui.com/r",
+  "aliases": {
+    "components": "components/ui",
+    "tokens": "lib/arloui",
+    "theme": "lib/arloui",
+    "lib": "lib/arloui"
+  },
+  "style": "default"
+}
