@@ -580,12 +580,17 @@ export type ThemeName = keyof typeof themes;
 export type Theme = (typeof themes)[ThemeName];
 
 /**
- * Hex + alpha → `rgba()`.
+ * Convert `#RRGGBB` to `rgba(r,g,b,a)`.
  *
- * Added by hand: the chart files copied by `npx arloui add chart` import this
- * from `@arloui/tokens`, but that package is not a dependency of a consumer app
- * and the CLI does not rewrite the import. Keeping the helper here — beside the
- * colours it is always applied to — is the fix that survives the next `add`.
+ * Mirrors `rgbaFromHex` in `@arloui/tokens`, and lives here for the same reason
+ * every value in this file does: what the CLI copies into a consumer project has
+ * to stand on its own. Chart marks reach for it to fade a series colour — a
+ * dimmed bar, a gradient stop, a heatmap cell — none of which can hardcode an
+ * `rgba()` string when the hue comes from a token.
+ *
+ * Components must import it from here (`../../foundation/tokens`) rather than
+ * from `@arloui/tokens`: that package is a workspace dependency of this repo,
+ * not of the app the files are copied into.
  */
 export function rgbaFromHex(hex: string, alpha: number): string {
   const n = hex.replace('#', '');

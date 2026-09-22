@@ -105,9 +105,14 @@ alone could never say which band did the damage, so it returns per-band detail.
 An estimate, not tax advice. It models PAYE on employment income for a resident individual and
 leaves out capital gains, business income, and anything an employer treats unusually.
 
-## Patched after install
+## A note on the chart source
 
-`npx arloui add chart` copies five files that import `rgbaFromHex` from `@arloui/tokens` — a
-package a consumer app does not have, and an import the CLI does not rewrite. The helper was
-added to `lib/arloui/tokens.ts` and the imports repointed there. Without it the project does not
-typecheck or bundle.
+Building this app turned up a blocker in the published registry: `npx arloui add chart` copied
+five files importing `rgbaFromHex` from `@arloui/tokens` — a package a consumer app does not
+have, and an import the CLI does not rewrite — so the project would not typecheck or bundle.
+
+That is fixed upstream now (the helper lives in the emitted `lib/arloui/tokens.ts` and the chart
+imports it relatively), along with the chart's hardcoded font weights and dimensions. The chart
+source here was re-installed from a local build of that fix, so it is ahead of what
+`https://arloui.com/r` currently serves. Re-running `npx arloui add chart` against production
+will pull the older copy back until the fix ships.
