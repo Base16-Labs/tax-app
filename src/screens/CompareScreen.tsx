@@ -6,7 +6,7 @@
  * is a real number you can scrub to. One `Chart` per regime, sharing a scrub
  * position through `activeAt` so both readouts describe the same income.
  */
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
 import { Card } from '../../components/ui/card';
@@ -33,6 +33,18 @@ export function CompareScreen({
   // their own `at` values, so the two readouts can never describe different
   // incomes even though they are separate chart instances.
   const [scrubAt, setScrubAt] = useState<ChartPoint['at']>(undefined);
+
+  /**
+   * Keeps the last scrubbed income instead of clearing on finger-up.
+   *
+   * The chart reports `null` on release, and honouring that would snap both
+   * readouts back to the end of the range the instant you lift — on touch the
+   * comparison below would flash up and vanish before it could be read. Holding
+   * the position is also what keeps the two charts agreeing about *when*.
+   */
+  const handleScrub = useCallback((_: number | null, point: ChartPoint | null) => {
+    if (point) setScrubAt(point.at);
+  }, []);
 
   const points = useMemo(
     () => sweep(input, { from: 0, to: SWEEP_TO, steps: SWEEP_STEPS }),
@@ -138,7 +150,7 @@ export function CompareScreen({
           format={(v) => nairaShort(v)}
           formatAt={(at) => (typeof at === 'number' ? `${nairaShort(at)} gross` : '')}
           activeAt={scrubAt}
-          onScrub={(_, point) => setScrubAt(point?.at)}
+          onScrub={handleScrub}
         >
           <Chart.Value />
           <Chart.Plot height={150} />
@@ -161,7 +173,7 @@ export function CompareScreen({
           format={(v) => nairaShort(v)}
           formatAt={(at) => (typeof at === 'number' ? `${nairaShort(at)} gross` : '')}
           activeAt={scrubAt}
-          onScrub={(_, point) => setScrubAt(point?.at)}
+          onScrub={handleScrub}
         >
           <Chart.Value />
           <Chart.Plot height={150} />
@@ -215,9 +227,9 @@ export function CompareScreen({
               marginTop: t.spacing[2],
             }}
           >
-            Below about {naira(crossover)} a year you pay less than you would have. Above it you pay
-            more — the top rate rose from 24% to 25%, and the consolidated relief allowance that
-            softened the old bands is gone.
+            Below about {nairaShort(crossover)} a year you pay less than you would have. Above it
+            you pay more — the top rate rose from 24% to 25%, and the consolidated relief allowance
+            that softened the old bands is gone.
           </Text>
         </Card>
       ) : null}

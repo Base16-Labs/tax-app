@@ -106,7 +106,14 @@ export function BreakdownScreen({
               tone="series"
               format={(v) => nairaShort(v)}
               accessibilityLabel="Tax charged by each marginal rate band"
-            />
+            >
+              {/* Parts are the switches here, and naming any of them replaces
+                  the whole default composition — so the rate labels and the zero
+                  rule have to be named too, not just the amounts. */}
+              <Chart.Bar.Values />
+              <Chart.Bar.Categories />
+              <Chart.Bar.Baseline />
+            </Chart.Bar>
             <Text
               style={{
                 color: t.colors.textTertiary,

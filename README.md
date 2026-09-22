@@ -58,11 +58,23 @@ and finds the crossover for your own reliefs by bisection.
 
 ```bash
 npm install
-npm run ios
+npx expo start
 ```
 
-`npm run ios` does a dev build, which is what gets you the real Liquid Glass tab bar on
-iOS 26. Expo Go works too and falls back to the translucent overlay.
+Then open it in **Expo Go** (SDK 57 needs Expo Go 57.0.9). This is the path that works today,
+and the glass tab bar takes its supported translucent-overlay fallback.
+
+`npm run ios` does a native dev build, which is what gets you the real Liquid Glass material
+on iOS 26. It currently fails on **Xcode 26.0.1**: `expo-modules-jsi@57.1.0` uses `weak let`
+(SE-0481), which that Xcode's Swift 6.2 does not accept. Xcode 26.1+ fixes it. Nothing in this
+app is involved — it is an upstream toolchain gap.
+
+If `pod install` fails with `Unicode Normalization not appropriate for ASCII-8BIT`, run it with
+a UTF-8 locale:
+
+```bash
+cd ios && LANG=en_US.UTF-8 pod install
+```
 
 ```bash
 npm test        # 32 tests over the tax engine
