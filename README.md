@@ -111,8 +111,7 @@ Building this app turned up a blocker in the published registry: `npx arloui add
 five files importing `rgbaFromHex` from `@arloui/tokens` — a package a consumer app does not
 have, and an import the CLI does not rewrite — so the project would not typecheck or bundle.
 
-That is fixed upstream now (the helper lives in the emitted `lib/arloui/tokens.ts` and the chart
-imports it relatively), along with the chart's hardcoded font weights and dimensions. The chart
-source here was re-installed from a local build of that fix, so it is ahead of what
-`https://arloui.com/r` currently serves. Re-running `npx arloui add chart` against production
-will pull the older copy back until the fix ships.
+That is fixed and shipped. `npx arloui add chart` against `https://arloui.com/r` now produces a
+project that typechecks and bundles, and the chart source here is a clean install from it — no
+hand-patching. The same release also moved the chart's font weights and dimensions onto named
+scales and made a partial composition warn instead of silently dropping parts.
