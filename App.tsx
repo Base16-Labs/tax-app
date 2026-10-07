@@ -1,16 +1,4 @@
-/**
- * Take Home: your pay after tax in the UK, the US or Nigeria, built entirely
- * with Arlo UI.
- *
- * First run asks one question, where you are paid, which sets the tax rules and
- * the currency together. After that, three tabs over one shared income: what you
- * keep; Explore, a hub that opens the breakdown, the salary explorer and the
- * rules; and Settings.
- *
- * The tab bar is the floating glass variant with `jelly` selection, and it
- * reacts to scroll. The `useTabBarScroll` hook lives here rather than in each
- * screen so every screen shares one signal.
- */
+/** Take Home: after-tax pay in the UK, the US or Nigeria, built with Arlo UI. */
 import { useEffect, useState, type ReactElement } from 'react';
 import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
@@ -42,20 +30,13 @@ import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { RulesScreen } from './src/screens/RulesScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 
-// Keep the system splash up until the fonts are in, so no screen ever renders
-// in the system face first.
+// Keep the splash screen up until the fonts have loaded.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 SplashScreen.setOptions({ duration: 300, fade: true });
 
 type TabKey = 'calculate' | 'explore' | 'settings';
 
-/**
- * Icon pairs, outline at rest and solid when selected.
- *
- * The weight swap is the whole selected-state signal on a full-width bar and it
- * reinforces the pill on a floating one; colour alone would be the only cue
- * for anyone who cannot separate the two hues.
- */
+/** Outline icon at rest, solid when selected. */
 const TABS: {
   value: TabKey;
   label: string;
@@ -125,7 +106,7 @@ function Shell() {
         <TabBar
           value={tab}
           onValueChange={(next) => {
-            // Tapping a tab always lands on its first screen, as iOS tab bars do.
+            // Tapping a tab resets it to its first screen.
             setExplorePage(null);
             setTab(next as TabKey);
           }}

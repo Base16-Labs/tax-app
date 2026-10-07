@@ -1,11 +1,6 @@
 /**
- * Nigeria: the Nigeria Tax Act 2025 (in force from 1 January 2026), plus the
- * Personal Income Tax Act it replaced, kept so the app can show what the reform
- * changed. Pure arithmetic over `ng-rules.ts`, with no React and no formatting.
- *
- * Both regimes return the same `TaxResult`, which is what lets one input run
- * through two laws and be subtracted. `calculateNG` turns the current law's
- * result into the `Payslip` every country shares.
+ * Nigeria: the Nigeria Tax Act 2025 (from 1 January 2026) and the Personal
+ * Income Tax Act it replaced, for comparison. Pure arithmetic over ng-rules.ts.
  */
 import {
   CRA_FLOOR,
@@ -72,12 +67,7 @@ export const EMPTY_INPUT: TaxInput = {
 
 const clampPositive = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
 
-/**
- * Walks a band table, filling each layer before moving up.
- *
- * Returns per-band detail rather than just a total: the Breakdown screen
- * charts these bars, and a total alone could not say which rate did the damage.
- */
+/** Applies a band table bottom-up, returning per-band detail. */
 function applyBands(chargeable: number, bands: readonly Band[]): BandBreakdown[] {
   let remaining = clampPositive(chargeable);
   let ceiling = 0;
@@ -108,9 +98,8 @@ export function rentRelief(annualRent: number): number {
 }
 
 /**
- * PITA's Consolidated Relief Allowance: the higher of ₦200,000 and 1% of gross
- * income, plus 20% of gross income, where "gross income" is already net of the
- * tax-exempt contributions. Abolished by the NTA 2025.
+ * PITA Consolidated Relief Allowance: max(₦200,000, 1% of gross) + 20% of gross,
+ * with gross already net of exempt contributions. Abolished by the NTA 2025.
  */
 export function consolidatedRelief(grossIncomeAfterContributions: number): number {
   const base = clampPositive(grossIncomeAfterContributions);
@@ -126,13 +115,7 @@ function contributionsOf(input: TaxInput) {
   return { gross, pension, nhf, nhis, life, total: pension + nhf + nhis + life };
 }
 
-/**
- * Nigeria Tax Act 2025.
- *
- * Contributions come off, rent relief comes off, and the remainder meets the
- * 0/15/18/21/23/25 ladder. There is no consolidated relief; the zero-rated
- * first ₦800,000 replaced it.
- */
+/** Nigeria Tax Act 2025: contributions and rent relief come off, then the 0-25% bands. */
 export function calculateNTA2025(input: TaxInput): TaxResult {
   const c = contributionsOf(input);
   const rent = rentRelief(input.annualRent);
@@ -150,9 +133,7 @@ export function calculateNTA2025(input: TaxInput): TaxResult {
   const bands = applyBands(chargeableIncome, NTA_2025_BANDS);
   const annualTax = bands.reduce((sum, b) => sum + b.tax, 0);
 
-  // Take-home is gross less tax and less the contributions that actually leave
-  // the payslip. Rent relief is not one of them: it lowers the tax bill, it is
-  // not money deducted from pay, so it is excluded here on purpose.
+  // Rent relief only lowers taxable income; it is not deducted from take-home.
   const annualTakeHome = c.gross - annualTax - c.total;
 
   return {
@@ -172,13 +153,7 @@ export function calculateNTA2025(input: TaxInput): TaxResult {
   };
 }
 
-/**
- * The pre-2026 Personal Income Tax Act.
- *
- * Contributions come off first, then the CRA is computed on what is left, then
- * the 7–24% ladder runs. If the banded result falls below 1% of gross income,
- * the old minimum-tax rule charges that 1% instead.
- */
+/** Pre-2026 PITA: contributions, then CRA, then the 7-24% bands, with a minimum tax of 1% of gross. */
 export function calculatePITA(input: TaxInput): TaxResult {
   const c = contributionsOf(input);
   const grossIncome = Math.max(0, c.gross - c.total);
@@ -197,8 +172,7 @@ export function calculatePITA(input: TaxInput): TaxResult {
   const bands = applyBands(chargeableIncome, PITA_BANDS);
   const bandedTax = bands.reduce((sum, b) => sum + b.tax, 0);
 
-  // The old 1% minimum tax. Only bites where there is income to tax at all:
-  // a zero gross owes zero, not a rounding of zero.
+  // PITA minimum tax: 1% of gross, only when there is gross income.
   const minimumTax = grossIncome * PITA_MINIMUM_TAX_RATE;
   const minimumTaxApplied = c.gross > 0 && bandedTax < minimumTax;
   const annualTax = minimumTaxApplied ? minimumTax : bandedTax;
@@ -229,7 +203,7 @@ export function calculate(input: TaxInput, regime: Regime): TaxResult {
 export type Comparison = {
   current: TaxResult;
   previous: TaxResult;
-  /** Positive means the new law charges less, the taxpayer is better off. */
+  /** Positive when the new law charges less. */
   annualSaving: number;
   monthlySaving: number;
   /** Saving as a share of the old bill. 0 when the old bill was 0. */
@@ -250,13 +224,7 @@ export function compare(input: TaxInput): Comparison {
   };
 }
 
-/**
- * The same comparison across a sweep of incomes, for the Compare screen's plot.
- *
- * Reliefs that are fixed amounts (rent, life premium) are held at the user's own
- * values while gross moves, which is what makes the two curves comparable: only
- * the income is varying.
- */
+/** Both laws across a range of incomes, with fixed reliefs (rent, life premium) held constant. */
 export function sweep(
   input: TaxInput,
   { from = 0, to = 30_000_000, steps = 40 }: { from?: number; to?: number; steps?: number } = {},
@@ -273,11 +241,7 @@ export function sweep(
   });
 }
 
-/**
- * The current law as a `Payslip`. Nigeria has no separate payroll tax, so there
- * are no levies: pension, NHF and NHIS are contributions (still yours), rent
- * relief only shrinks the taxed income.
- */
+/** The current law as a `Payslip`. No payroll levies; pension, NHF and NHIS are contributions. */
 export function calculateNG(input: TaxInput): Payslip {
   const result = calculateNTA2025(input);
   const contributions = result.deductions.filter((d) => d.label !== 'Rent relief');

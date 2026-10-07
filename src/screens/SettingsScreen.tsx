@@ -1,12 +1,4 @@
-/**
- * Settings, laid out the way iOS apps do it.
- *
- * The main screen is one grouped list: each row names a setting and shows its
- * current value, and a chevron says it opens. Appearance and Country each get a
- * page of their own with the choices as rows and a check on the active one, the
- * pattern Coinbase, Uniswap and Betterment use for appearance on Mobbin. The app
- * credit sits quietly at the foot, like a version footer.
- */
+/** Settings: appearance and country pages, plus the app credit. */
 import { useState, type ReactElement } from 'react';
 import { Linking, View } from 'react-native';
 import {
@@ -97,11 +89,8 @@ function SettingsHome({ onOpen }: { onOpen: (page: Page) => void }) {
         />
       </ListCard>
 
-      {/* The credit, as a footer rather than a setting. */}
       <View style={{ alignItems: 'center', gap: t.spacing[2], marginTop: t.spacing[6] }}>
         <Logo size={44} />
-        {/* The names are the links, so no bare URL is needed. Nested Text keeps
-            them inline in the sentence. */}
         <Text variant="caption" style={{ textAlign: 'center' }}>
           Take Home 1.0{'\n'}Built by{' '}
           <Text variant="caption" tone="link" onPress={() => Linking.openURL('https://base16.studio')}>

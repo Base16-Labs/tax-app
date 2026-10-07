@@ -1,10 +1,4 @@
-/**
- * The shapes every country's engine shares.
- *
- * Each country turns the same `TaxInput` into the same `Payslip`, so the screens
- * never need to know which tax system produced a number. Inputs a country does
- * not use (rent outside Nigeria, filing status outside the US) are ignored.
- */
+/** Types shared by every country's tax engine. */
 
 export type CountryCode = 'GB' | 'US' | 'NG';
 
@@ -47,7 +41,7 @@ export type BandLine = {
 
 export type Payslip = {
   grossAnnual: number;
-  /** Money that leaves your pay but is still yours: pension, 401(k), NHF. */
+  /** Deducted from pay but not tax: pension, 401(k), NHF. */
   contributions: Line[];
   /** Amounts that only shrink the taxed income: allowances, standard deduction, rent relief. */
   reliefs: Line[];

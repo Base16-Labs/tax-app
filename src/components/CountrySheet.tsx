@@ -1,9 +1,4 @@
-/**
- * Switching country from anywhere: Arlo's Sheet with the country list in it.
- *
- * The Sheet covers the whole screen, so it is rendered once at the app shell,
- * outside every scroll view, and screens open it through `useCountrySheet()`.
- */
+/** Country picker sheet. Rendered once at the app shell; open it with useCountrySheet(). */
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';

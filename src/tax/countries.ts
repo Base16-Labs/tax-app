@@ -1,11 +1,4 @@
-/**
- * The three countries the app supports, and everything the screens need to know
- * about each: its currency, its tax year, its engine, and how to explain its rules.
- *
- * The currency follows the country. Tax is worked out in the currency it is paid
- * in, so a UK salary is always in pounds; showing it in naira would mean live
- * exchange rates and numbers that drift from the law.
- */
+/** Per-country config: currency, tax year, engine and rules copy. */
 import { calculateGB, PERSONAL_ALLOWANCE } from './gb';
 import { calculateNG } from './ng';
 import { NHF_RATE, NHIS_RATE, NTA_2025_BANDS, PENSION_RATE } from './ng-rules';
@@ -86,8 +79,7 @@ export const COUNTRIES: Record<CountryCode, Country> = {
     topRate: 0.47,
     raiseStep: 1_000,
     exploreTo: 160_000,
-    // HMRC's own table. Shifting the bands by the allowance would put 45% above
-    // £137,710, but the allowance is gone by £125,140, which is where it starts.
+    // As in HMRC's table: 45% starts at £125,140, where the allowance is fully tapered.
     bandsFor: () => [
       { rate: 0, from: 0, to: PERSONAL_ALLOWANCE },
       { rate: 0.2, from: PERSONAL_ALLOWANCE, to: 50_270 },

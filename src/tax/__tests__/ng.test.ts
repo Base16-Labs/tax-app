@@ -158,7 +158,7 @@ describe('PITA', () => {
   });
 
   it('charges tax at incomes the NTA exempts', () => {
-    // The headline of the reform: 800k gross owed something under PITA.
+    // 800k gross owed tax under PITA.
     expect(calculatePITA(bare(800_000)).annualTax).toBeGreaterThan(0);
     expect(calculateNTA2025(bare(800_000)).annualTax).toBe(0);
   });
@@ -208,8 +208,7 @@ describe('compare', () => {
   });
 
   it('a high earner pays more under the new law', () => {
-    // The top rate went 24% → 25% and the CRA is gone, so the reform is not a
-    // cut for everyone. If this ever flips, the engine is wrong.
+    // The top rate rose from 24% to 25% and the CRA is gone, so high earners pay more.
     const c = compare({ ...EMPTY_INPUT, grossAnnual: 100_000_000, annualRent: 5_000_000 });
     expect(c.annualSaving).toBeLessThan(0);
   });
@@ -237,8 +236,7 @@ describe('sweep', () => {
   });
 
   it('the two curves cross exactly once', () => {
-    // Below the crossover the new law is cheaper; above it, dearer. One sign
-    // change. If there were two, one of the band tables would be malformed.
+    // Exactly one sign change: cheaper below the crossover, dearer above.
     const points = sweep(EMPTY_INPUT, { from: 0, to: 120_000_000, steps: 240 });
     const signs = points
       .filter((p) => p.previous > 0 || p.current > 0)

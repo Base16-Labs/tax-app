@@ -1,10 +1,4 @@
-/**
- * What you earn, what you keep.
- *
- * Your pay comes first, so the first thing on screen is where to type, and the
- * result sits right under it and updates as you type. The hero figure is monthly
- * take-home, because that is the number people actually recognise.
- */
+/** Calculate: income entry and take-home result. */
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
@@ -42,8 +36,7 @@ export function CalculateScreen() {
   const grossFor = (period: IncomePeriod, gross = input.grossAnnual) =>
     groupDigits(String(period === 'month' ? Math.round(gross / 12) : gross));
 
-  // The fields hold text so typing "1,2" is not reformatted mid-keystroke. They
-  // reload when the country changes, since each country keeps its own figures.
+  // Fields hold raw text so typing isn't reformatted; they reset on country change.
   const [grossText, setGrossText] = useState(() => grossFor(incomePeriod));
   const [rentText, setRentText] = useState(() => groupDigits(String(input.annualRent)));
   useEffect(() => {
@@ -70,12 +63,10 @@ export function CalculateScreen() {
         </Chip>
       }
     >
-      {/* ------------------------------------------------------- your pay --- */}
       <SectionLabel>Your pay</SectionLabel>
       <Card padding="md">
         <View style={{ gap: t.spacing[4] }}>
-          {/* Only changes how the pay is typed. The stored yearly figure is left
-              alone, so flipping back and forth cannot drift it through rounding. */}
+          {/* Only changes the entry period; the stored annual figure is untouched. */}
           <Tabs
             appearance="segmented"
             surface="glass"
@@ -92,8 +83,6 @@ export function CalculateScreen() {
             <Tabs.Item value="month" label="Per month" />
           </Tabs>
 
-          {/* Arlo's plain (no-background) field: the card already frames it, so
-              a filled box inside it would be a frame inside a frame. */}
           <Input
             appearance="plain"
             label={salaryLabel}
@@ -106,15 +95,11 @@ export function CalculateScreen() {
             inputMode="numeric"
             placeholder="0"
             leadingIcon={<CurrencyMark symbol={country.currency.symbol} large />}
-            // Arlo draws a plain field's value in secondary ink; a typed amount is
-            // the most important thing on the screen, so it gets primary ink and
-            // reads as a value, not a placeholder.
+            // Plain fields draw the value in secondary ink; use primary for the amount.
             inputStyle={{ color: t.colors.textPrimary }}
             fullWidth
           />
-          {/* Arlo centres a plain field's helper, which suits a centred amount
-              entry. These fields are left-aligned under their labels, so the
-              note is a caption of its own, aligned with them. */}
+          {/* Plain fields centre their helper text, so the note is rendered separately. */}
           <FieldNote>
             {perMonth ? `Before tax. Taxed as ${money(input.grossAnnual)} a year.` : 'Before tax and deductions.'}
           </FieldNote>
@@ -164,7 +149,6 @@ export function CalculateScreen() {
         </View>
       </Card>
 
-      {/* ---------------------------------------------------------- result --- */}
       <Card padding="lg" surface="elevated" elevation="sm">
         <Text variant="overline" tone="secondary">
           Monthly take-home
@@ -177,8 +161,7 @@ export function CalculateScreen() {
         </Text>
 
         <View style={{ marginTop: t.spacing[5], gap: t.spacing[2] }}>
-          {/* Total tax as a share of pay, against the highest rate anyone here
-              pays on their last unit of pay, so a real rate never looks like a sliver. */}
+          {/* Meter max is the country's top marginal rate. */}
           <InView>
             <Chart.Meter
               value={payslip.effectiveRate}
@@ -198,9 +181,7 @@ export function CalculateScreen() {
         </View>
       </Card>
 
-      {/* ------------------------------------------------------- pension --- */}
-      {/* Section labels are set in capitals, which would turn "401(k)" into
-          "401(K)", so the scheme is named in the sentence instead. */}
+      {/* Overline uppercases text ("401(K)"), so the scheme is named in the body copy. */}
       <SectionLabel>{country.code === 'NG' ? 'Contributions' : country.code === 'US' ? 'Retirement' : 'Pension'}</SectionLabel>
       <Card padding="md">
         <Text style={{ marginBottom: t.spacing[3] }}>
@@ -233,7 +214,6 @@ export function CalculateScreen() {
         </View>
       </Card>
 
-      {/* ------------------------------------------------------ the maths --- */}
       <SectionLabel>How it was worked out</SectionLabel>
       <ListCard>
         <List.Row title="Gross annual pay" value={money(payslip.grossAnnual)} />
@@ -301,7 +281,7 @@ function FieldNote({ children }: { children: string }) {
   );
 }
 
-/** A rule between two plain fields, so each reads as its own row. */
+/** Divider between plain fields. */
 function Hairline() {
   const t = useTokens();
   return <View style={{ height: 1, backgroundColor: t.colors.border }} />;

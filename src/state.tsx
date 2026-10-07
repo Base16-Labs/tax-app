@@ -1,11 +1,4 @@
-/**
- * One country, one set of inputs, every screen.
- *
- * The income you type on Calculate is the income Breakdown charts and Explore
- * sweeps, so it lives above all of them. Each country keeps its own inputs (a
- * salary in pounds means nothing in naira), and all of it is saved, so the app
- * reopens where you left it.
- */
+/** App state: the chosen country and each country's saved inputs. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { load, save } from './storage';
 import { COUNTRIES, type Country } from './tax/countries';
@@ -14,11 +7,7 @@ import { compare, type Comparison } from './tax/ng';
 import { marginalRate } from './tax/progressive';
 import type { CountryCode, Payslip, TaxInput } from './tax/types';
 
-/**
- * How the income is typed, not how it is taxed: the engines always work on a
- * year. Most people know their monthly pay, so Calculate lets them enter it that
- * way and multiplies up.
- */
+/** How the income is entered. The engines always work on an annual figure. */
 export type IncomePeriod = 'year' | 'month';
 
 type Inputs = Partial<Record<CountryCode, TaxInput>>;

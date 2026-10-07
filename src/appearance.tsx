@@ -1,10 +1,6 @@
 /**
- * The appearance the user picked: dark, light, or follow the system.
- *
- * Arlo's ThemeProvider takes the choice but only reports the theme it resolved
- * to, so "system" on a dark phone reads back as "dark". The Guide's segmented
- * control has to show what was *picked*, so the pick is remembered here, above
- * the screens, where a tab switch cannot reset it.
+ * The appearance the user picked: dark, light or system.
+ * ThemeProvider only exposes the resolved theme, so the raw choice is kept here.
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { useTheme } from '../lib/arloui/theme-provider';

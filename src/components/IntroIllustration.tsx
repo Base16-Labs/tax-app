@@ -1,11 +1,4 @@
-/**
- * The intro illustration: the app icon at the centre, orbited by a coin for
- * each currency the app speaks. It says "your money, in three countries"
- * without a word of copy.
- *
- * Drawn in SVG from theme tokens, so it re-themes with the app; the logo itself
- * is the exported brand PNG, so it is pixel-identical to the home-screen icon.
- */
+/** Onboarding illustration: the app icon orbited by one coin per currency. */
 import { View } from 'react-native';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useTokens } from '../../lib/arloui/theme-provider';
@@ -43,7 +36,7 @@ function Coin({
           <Stop offset="1" stopColor={to} />
         </LinearGradient>
       </Defs>
-      {/* A soft drop so the coin floats above the rings. */}
+      {/* Drop shadow. */}
       <Circle cx={x} cy={y + 4} r={r} fill="#000000" opacity={0.12} />
       <Circle cx={x} cy={y} r={r} fill={`url(#${id})`} />
       <Circle cx={x} cy={y} r={r - 4} fill="none" stroke="#FFFFFF" strokeOpacity={0.35} strokeWidth={1.5} />
@@ -81,7 +74,7 @@ export function IntroIllustration() {
   return (
     <View style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={SIZE} height={SIZE} style={{ position: 'absolute' }}>
-        {/* A brand-blue glow behind the icon, then two orbits. */}
+        {/* Glow behind the icon, then two orbits. */}
         <Circle cx={C} cy={C} r={92} fill={ring} opacity={dark ? 0.16 : 0.08} />
         <Circle cx={C} cy={C} r={92} fill="none" stroke={ring} strokeOpacity={0.35} strokeWidth={1.5} />
         <Circle
@@ -100,7 +93,7 @@ export function IntroIllustration() {
         <Sparkle x={250} y={238} s={5} color={ring} />
         <Sparkle x={262} y={96} s={4} color={t.colors.textTertiary} />
 
-        {/* One coin per currency, sitting on the outer orbit. */}
+        {/* One coin per currency on the outer orbit. */}
         <Coin x={C + 96} y={C - 96} r={30} symbol="£" from="#4F8DFF" to="#155DFC" ink="#FFFFFF" font={font} />
         <Coin x={C - 120} y={C + 52} r={27} symbol="$" from="#34D399" to="#059669" ink="#FFFFFF" font={font} />
         <Coin x={C + 54} y={C + 124} r={24} symbol="₦" from="#FBBF24" to="#D97706" ink="#FFFFFF" font={font} />

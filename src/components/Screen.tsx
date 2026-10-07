@@ -1,11 +1,4 @@
-/**
- * The scroll container every tab shares, and the few pieces every screen uses.
- *
- * It exists so the tab bar's scroll reaction is wired in exactly once: the app
- * shell provides the handler through `ScreenScrollProvider`, each Screen picks it
- * up, and the bottom padding clears the floating bar so the last card is never
- * parked underneath it.
- */
+/** Shared scroll container for tab screens, wired to the tab bar's scroll handler, plus layout helpers. */
 import {
   createContext,
   useCallback,
@@ -130,18 +123,7 @@ export function Screen({
   );
 }
 
-/**
- * Holds a chart's entrance until the chart is actually on screen.
- *
- * Charts animate when they mount, and a screen mounts every chart at once, so
- * anything below the fold used to finish animating before anyone scrolled to
- * it. This keeps Arlo's entrance gate shut until enough of the chart clears the
- * floating tab bar, then opens it. The chart mounts once and lays out normally
- * (axes and labels show; the marks wait at their first frame), so nothing is
- * rendered twice and nothing below it jumps. Once per visit: a tab switch
- * unmounts the screen, so coming back plays it again. Reduce Motion needs no
- * case here: the charts land on their final frame regardless of the gate.
- */
+/** Holds a chart's entrance animation until it scrolls into view above the tab bar. */
 export function InView({ children }: { children: ReactNode }) {
   const subscribe = useContext(ScrollSignal);
   const insets = useSafeAreaInsets();
@@ -172,7 +154,7 @@ export function InView({ children }: { children: ReactNode }) {
   );
 }
 
-/** A labelled section heading, so the long screens stay scannable. */
+/** Section heading. */
 export function SectionLabel({ children }: { children: string }) {
   const t = useTokens();
   return (
@@ -182,10 +164,7 @@ export function SectionLabel({ children }: { children: string }) {
   );
 }
 
-/**
- * Arlo's List on a card, the grouped look every set of figures in the app uses.
- * The rows carry their own padding, so the card adds none.
- */
+/** Arlo List inside an unpadded Card. */
 export function ListCard({ children }: { children: ReactNode }) {
   return (
     <Card padding="none">

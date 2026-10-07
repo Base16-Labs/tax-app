@@ -1,11 +1,4 @@
-/**
- * Where the money actually goes, and which rate did the damage.
- *
- * Two charts answering two different questions. The donut is part-to-whole:
- * gross split into take-home, income tax, payroll taxes and contributions. The
- * bar chart is categorical: how much income tax each band charged, which is the
- * thing a single "you owe X" figure can never tell you.
- */
+/** Breakdown: pay split (donut) and income tax per band (bars). */
 import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
 import { Card } from '../../components/ui/card';
@@ -24,8 +17,7 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
 
   const slices = usePaySlices();
 
-  // Only the bands that charged something: zero-height bars for the bands above
-  // your income are noise, not information.
+  // Skip bands that charged nothing.
   const bars: BarDatum[] = payslip.bands
     .filter((band) => band.tax > 0)
     .map((band) => ({ label: band.label, value: band.tax }));
@@ -36,7 +28,6 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
       subtitle={`On ${money(gross)} a year, in ${country.inProse}.`}
       back={{ label: 'Explore', onPress: onBack }}
     >
-      {/* --------------------------------------------------------- donut --- */}
       <SectionLabel>Where your pay goes</SectionLabel>
       {slices.length > 0 ? (
         <Card padding="none">
@@ -48,8 +39,6 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
                 format={moneyShort}
                 accessibilityLabel={`${money(gross)} split into take-home, tax and contributions`}
               >
-                {/* The rows below are the legend, with exact figures, which a
-                    legend under the ring would only repeat in short form. */}
                 <Chart.Donut.Value />
               </Chart.Donut>
             </InView>
@@ -73,13 +62,10 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
         </Card>
       )}
 
-      {/* ----------------------------------------------------------- bars --- */}
       <SectionLabel>Income tax, by band</SectionLabel>
       <Card padding="lg">
         {bars.length > 0 ? (
           <View style={{ gap: t.spacing[3] }}>
-            {/* Below the fold on first open, so held until scrolled to, or the
-                bars finish growing before anyone sees them. */}
             <InView>
               <Chart.Bar
                 data={bars}
@@ -88,8 +74,7 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
                 format={moneyShort}
                 accessibilityLabel="Income tax charged by each band"
               >
-                {/* Naming any part replaces the default composition, so the rate
-                    labels and the zero rule are named alongside the amounts. */}
+                {/* Naming any part replaces the default composition, so all parts are listed. */}
                 <Chart.Bar.Amounts />
                 <Chart.Bar.Categories />
                 <Chart.Bar.Baseline />
@@ -105,7 +90,6 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
         )}
       </Card>
 
-      {/* ---------------------------------------------------- band detail --- */}
       <SectionLabel>Band by band</SectionLabel>
       <ListCard>
         {payslip.bands.map((band) => (

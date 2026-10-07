@@ -1,11 +1,4 @@
-/**
- * What a raise is worth, and how tax grows with pay.
- *
- * The headline prices a raise at your own salary. Below it, take-home and tax
- * across a range of salaries, as two Charts sharing one scrub position through
- * `activeAt`, so both readouts always describe the same salary. Nigeria adds the
- * 2026 reform: the same pay under the law it replaced.
- */
+/** Explore: the value of a raise, and take-home and tax across a salary range. */
 import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
@@ -22,8 +15,8 @@ import { marginalRate } from '../tax/progressive';
 import type { TaxInput } from '../tax/types';
 
 /**
- * Where Nigeria's old and new laws swap places, found by bisection: the sweep is
- * too coarse to read it off. `null` when they do not cross in a plausible range.
+ * Income where Nigeria's old and new laws cross, found by bisection because the
+ * sweep is too coarse. `null` if they don't cross in a plausible range.
  */
 function findCrossover(input: TaxInput): number | null {
   const gap = (gross: number) => {
@@ -47,11 +40,9 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
   const step = country.raiseStep;
   const keep = step * (1 - marginal);
 
-  // The scrub position is a salary, not an index, so both charts resolve it
-  // against their own points and can never describe different salaries.
+  // The scrub position is a salary, not an index, so both charts stay in sync.
   const [scrubAt, setScrubAt] = useState<ChartPoint['at']>(undefined);
-  // Keeps the last scrubbed salary on finger-up, so the figures below stay
-  // readable instead of snapping back the instant you lift.
+  // Keep the last scrubbed salary after the finger lifts.
   const handleScrub = useCallback((_: number | null, point: ChartPoint | null) => {
     if (point) setScrubAt(point.at);
   }, []);
@@ -73,7 +64,6 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
       subtitle={`How tax grows with pay in ${country.inProse}.`}
       back={{ label: 'Explore', onPress: onBack }}
     >
-      {/* ------------------------------------------------------ headline --- */}
       <Card padding="lg" surface="elevated" elevation="sm">
         <Text variant="overline" tone="secondary">
           Of a {money(step)} raise you keep
@@ -86,7 +76,6 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
         </Text>
       </Card>
 
-      {/* --------------------------------------------------------- plots --- */}
       <SectionLabel>Across salaries</SectionLabel>
       <Card padding="lg">
         <View style={{ gap: t.spacing[6] }}>
@@ -121,7 +110,6 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
         <Text style={{ marginTop: t.spacing[2] }}>{insight.body}</Text>
       </Card>
 
-      {/* ------------------------------------------------- Nigeria reform --- */}
       {reform ? (
         <>
           <SectionLabel>The 2026 reform</SectionLabel>

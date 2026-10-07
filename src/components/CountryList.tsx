@@ -1,8 +1,4 @@
-/**
- * The three countries as a single-choice list: Arlo's List on a Card, with a
- * Radio on each row. Onboarding, the country sheet and Settings all use it, so
- * the choice looks and behaves the same wherever it is made.
- */
+/** Single-choice country list, used by onboarding, the country sheet and Settings. */
 import { Card } from '../../components/ui/card';
 import { List } from '../../components/ui/list';
 import { Radio } from '../../components/ui/radio';

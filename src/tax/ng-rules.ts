@@ -1,11 +1,6 @@
 /**
- * Nigerian personal income tax: the two band tables.
- *
- * A band is a *layer*, not a bracket: `width` is how much income the rate
- * applies to once every band below it is full. The last band has no width, so
- * it is `Infinity` and everything above the previous ceiling lands there.
- *
- * Both tables are annual and in naira.
+ * Nigerian personal income tax band tables, annual, in naira.
+ * `width` is the income a band holds; the top band is `Infinity`.
  */
 
 export type Band = {
@@ -17,11 +12,7 @@ export type Band = {
 
 /**
  * Nigeria Tax Act 2025, in force from 1 January 2026.
- *
- * Cumulative ceilings: 800k, 3m, 12m, 25m, 50m, then open-ended. The first
- * ₦800,000 of chargeable income is taxed at 0%, which is how the Act delivers
- * the "minimum wage earners pay nothing" exemption: it is a zero-rated band,
- * not a separate cliff, so nobody loses money by crossing ₦800,001.
+ * The first ₦800,000 is a 0% band, so there is no cliff at the exemption.
  */
 export const NTA_2025_BANDS: readonly Band[] = [
   { width: 800_000, rate: 0 }, //        0 –   800k   0%
@@ -32,13 +23,7 @@ export const NTA_2025_BANDS: readonly Band[] = [
   { width: Infinity, rate: 0.25 }, //    50m +        25%
 ];
 
-/**
- * Personal Income Tax Act (as amended), the regime that applied before 2026.
- *
- * Kept so the app can show what the reform actually changed. Its top rate is
- * lower (24% vs 25%) but it starts taxing at the first naira of chargeable
- * income, and its reliefs work differently (see `calculate.ts`).
- */
+/** Personal Income Tax Act (as amended), in force before 2026. */
 export const PITA_BANDS: readonly Band[] = [
   { width: 300_000, rate: 0.07 }, //      0 – 300k   7%
   { width: 300_000, rate: 0.11 }, //   300k – 600k  11%

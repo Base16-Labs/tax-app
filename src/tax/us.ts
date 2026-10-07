@@ -1,13 +1,7 @@
 /**
- * United States, 2026 tax year: federal income tax and FICA only.
- * State and local income taxes vary by state and are not modelled.
- *
- * Federal income tax runs on pay after the traditional 401(k) contribution,
- * less the standard deduction. Social Security and Medicare (FICA) run on gross
- * wages: a 401(k) does not reduce them.
- *
- * Sources: IRS Rev. Proc. 2025-32 (2026 brackets and standard deduction) and the
- * SSA's 2026 contribution and benefit base.
+ * US federal income tax and FICA, 2026. State and local taxes are not modelled.
+ * A traditional 401(k) reduces income tax but not FICA.
+ * Sources: IRS Rev. Proc. 2025-32; SSA 2026 contribution and benefit base.
  */
 import { fillBands, type Band } from './progressive';
 import { clampPositive, sum, type FilingStatus, type Line, type Payslip, type TaxInput } from './types';

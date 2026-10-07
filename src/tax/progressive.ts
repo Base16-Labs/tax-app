@@ -1,9 +1,4 @@
-/**
- * Progressive bands, shared by every country.
- *
- * A band is a layer, not a bracket: `width` is how much income the rate applies
- * to once every band below it is full. The top band's width is `Infinity`.
- */
+/** Progressive bands shared by every country. `width` is the income a band holds; the top is `Infinity`. */
 import { clampPositive, type BandLine, type Payslip, type TaxInput } from './types';
 
 export type Band = { width: number; rate: number };
@@ -30,9 +25,8 @@ export function fillBands(taxable: number, bands: readonly Band[]): BandLine[] {
 }
 
 /**
- * The share of the next slice of pay that goes in tax, measured rather than read
- * off a band table, so it includes payroll taxes and quirks like the UK's
- * tapered allowance (an effective 62% between £100,000 and £125,140).
+ * Tax on the next slice of pay, measured by recomputing, so it includes payroll
+ * taxes and the UK allowance taper (62% between £100,000 and £125,140).
  */
 export function marginalRate(
   calculate: (input: TaxInput) => Payslip,

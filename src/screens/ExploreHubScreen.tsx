@@ -1,12 +1,4 @@
-/**
- * The Explore tab: two cards, each a live preview of the page it opens.
- *
- * Breakdown previews the split of your pay as a small ring; Explore more
- * previews take-home across salaries as a sparkline. Both are drawn from the
- * same hooks as their full pages, so a preview is never out of step with the
- * page behind it. The rules sit under them as a plain link: reference, not
- * something to explore.
- */
+/** Explore hub: cards previewing Breakdown and the salary explorer, plus a link to the rules. */
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { OutlineCaretRight } from '@arloui/icons';

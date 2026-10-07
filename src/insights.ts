@@ -1,8 +1,4 @@
-/**
- * The derived views the Explore tab shows twice: once as a preview on its hub
- * cards, once in full on the page each card opens. Computed here so the preview
- * and the page can never disagree.
- */
+/** Derived data shared by the Explore hub previews and their full pages. */
 import { useMemo } from 'react';
 import type { ChartPoint, DonutSlice } from '../components/ui/chart';
 import { useTokens } from '../lib/arloui/theme-provider';
@@ -17,7 +13,7 @@ export type PaySlice = DonutSlice & { color: string; tax: boolean };
 export function usePaySlices(): PaySlice[] {
   const t = useTokens();
   const { payslip } = useTax();
-  // Payroll taxes get one slice, whatever the country calls them.
+  // All payroll taxes share one slice.
   const levyLabel = payslip.levies.length === 1 ? payslip.levies[0]!.label : 'Payroll taxes';
   const slices: PaySlice[] = [
     { label: 'Take-home', value: payslip.takeHome, color: t.colors.chartPositive, tax: false },
@@ -28,10 +24,7 @@ export function usePaySlices(): PaySlice[] {
   return slices.filter((s) => s.value > 0);
 }
 
-/**
- * Take-home and total tax from nothing up to past your own salary, with your
- * pension and other choices held fixed so only the pay is moving.
- */
+/** Take-home and total tax from zero to past the user's salary, other inputs held fixed. */
 export function useSalarySweep() {
   const { country, input } = useTax();
   return useMemo(() => {

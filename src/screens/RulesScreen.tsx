@@ -1,9 +1,4 @@
-/**
- * The rules, in the order the calculator applies them. Opened from Explore.
- *
- * A tax calculator that will not show its working is just a number generator,
- * so every figure the engine uses for the chosen country is listed here.
- */
+/** Every rate, threshold and relief the engine uses for the chosen country. */
 import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
 import { Card } from '../../components/ui/card';

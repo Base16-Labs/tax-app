@@ -42,3 +42,6 @@ yarn-error.*
 
 # Demo recordings: shared separately, too large for the repo
 *.mp4
+
+# Local editor and agent settings
+.claude/

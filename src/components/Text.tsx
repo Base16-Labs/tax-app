@@ -1,10 +1,4 @@
-/**
- * The app's text, on Arlo's type scale.
- *
- * Every string on screen is one of a handful of roles, so the screens name the
- * role and the tone and never spell out a font family, a size, or a colour. That
- * keeps the four screens visually consistent and re-themes them in one place.
- */
+/** App text: named variants and tones on Arlo's type scale. */
 import type { ReactNode } from 'react';
 import { Text as RNText, type StyleProp, type TextStyle } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
@@ -34,7 +28,7 @@ const TONE: Record<TextTone, (t: Tokens) => string> = {
   primary: (t) => t.colors.textPrimary,
   secondary: (t) => t.colors.textSecondary,
   tertiary: (t) => t.colors.textTertiary,
-  // The chart tones, so a figure in the copy matches the same figure in a chart.
+  // Chart series tones, so figures in copy match the charts.
   positive: (t) => t.colors.chartPositive,
   negative: (t) => t.colors.chartNegative,
   link: (t) => t.colors.interactivePrimary,

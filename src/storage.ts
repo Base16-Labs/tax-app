@@ -1,10 +1,6 @@
 /**
- * What the app remembers between launches: the chosen country, each country's
- * inputs, and the appearance.
- *
- * expo-sqlite's key-value store has a synchronous API, so saved values are read
- * before the first render and the app never flashes its defaults first. Storage
- * failing is never fatal: the app falls back to defaults and carries on.
+ * Persisted country, per-country inputs and appearance.
+ * expo-sqlite's kv store is synchronous, so values are read before first render.
  */
 import Storage from 'expo-sqlite/kv-store';
 
@@ -24,6 +20,6 @@ export function save(key: string, value: unknown): void {
     if (value === undefined || value === null) Storage.removeItemSync(PREFIX + key);
     else Storage.setItemSync(PREFIX + key, JSON.stringify(value));
   } catch {
-    // Not saved this time; the in-memory state is still right.
+    // Ignore write failures; the in-memory state is still correct.
   }
 }

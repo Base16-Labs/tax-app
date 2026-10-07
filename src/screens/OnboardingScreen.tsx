@@ -1,13 +1,4 @@
-/**
- * First run, in two short steps.
- *
- * 1. Intro: one illustration, one line and one button, so the country
- *    question that follows has a reason.
- * 2. Where are you paid? The country decides the tax rules and the currency
- *    together, so it is the only thing the app needs before it can show a real
- *    number. The phone's region is preselected when it is one of the three; the
- *    income starts at a typical salary for the country and is edited on Calculate.
- */
+/** First run: an intro, then the country picker (preselected from the device region). */
 import { useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -70,8 +61,6 @@ function IntroStep({ onStart }: { onStart: () => void }) {
         </Button>
       }
     >
-      {/* One picture, one line, one button: the pattern the best finance
-          welcome screens share (Finimize, Wise, Lloyds on Mobbin). */}
       <View style={{ alignItems: 'center', marginTop: t.spacing[8] }}>
         <IntroIllustration />
       </View>

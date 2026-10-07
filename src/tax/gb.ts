@@ -1,14 +1,7 @@
 /**
- * United Kingdom, 2026/27 tax year: England, Wales and Northern Ireland.
- * Scotland sets its own income tax bands and is not modelled.
- *
- * Income tax runs on pay after pension, less the personal allowance. National
- * Insurance runs on gross pay. The pension is treated as a "net pay" workplace
- * scheme: it comes off before income tax but not before National Insurance,
- * which is how most employer schemes work.
- *
- * Sources: gov.uk income tax rates and National Insurance rates, 2026/27.
- * Every threshold here has been frozen since 2021/22.
+ * UK income tax and employee NI, 2026/27: England, Wales and Northern Ireland (not Scotland).
+ * Pension is a net-pay scheme: it reduces income tax but not National Insurance.
+ * Source: gov.uk income tax and National Insurance rates, 2026/27.
  */
 import { fillBands, type Band } from './progressive';
 import { clampPositive, sum, type Line, type Payslip, type TaxInput } from './types';

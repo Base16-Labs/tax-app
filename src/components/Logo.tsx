@@ -1,7 +1,4 @@
-/**
- * The Take Home logo: a house with an arrow pointing in, white on Arlo's brand
- * blue. The PNGs in assets/brand are exported from assets/brand/source/icon.svg.
- */
+/** Take Home logo. The PNGs in assets/brand are exported from assets/brand/source/icon.svg. */
 import { Image, View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
 
@@ -15,11 +12,7 @@ export function Logo({ size = 56 }: { size?: number }) {
   );
 }
 
-/**
- * The same picture as the native splash screen (the logo at 120pt, centred on
- * the app's background), so the hand-over from the system splash to the app is
- * invisible while the fonts finish loading.
- */
+/** Matches the native splash screen (logo at 120pt, centred). */
 export function BrandSplash() {
   const t = useTokens();
   return (
