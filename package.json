@@ -1,5 +1,5 @@
 {
-  "name": "naija-tax",
+  "name": "tax-app",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
@@ -10,6 +10,8 @@
     "expo-font": "~57.0.4",
     "expo-glass-effect": "~57.0.3",
     "expo-haptics": "~57.0.3",
+    "expo-splash-screen": "~57.0.9",
+    "expo-sqlite": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
@@ -33,5 +35,5 @@
     "typecheck": "tsc --noEmit"
   },
   "private": true,
-  "description": "Nigerian income tax calculator \u2014 a demo of Arlo UI Chart and Tab Bar."
+  "description": "Nigerian income tax calculator — a demo of Arlo UI Chart and Tab Bar."
 }

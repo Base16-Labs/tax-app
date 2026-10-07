@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Naija Tax",
-    "slug": "naija-tax",
+    "name": "Take Home",
+    "slug": "tax-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#155DFC",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -23,7 +23,21 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "resizeMode": "contain",
+          "backgroundColor": "#F9FAFB",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#09090B"
+          }
+        }
+      ]
     ]
   }
 }

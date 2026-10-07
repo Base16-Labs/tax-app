@@ -26,7 +26,20 @@ import {
 import { GlassBackdrop, useGlassSurface } from '../../../lib/arloui/glass';
 import { useTokens } from '../../../lib/arloui/theme-provider';
 
-export type TabBarWidth = 'full' | 'floating';
+/**
+ * `'full'` docks edge to edge. `'floating'` is a pill at 92% of the screen, for
+ * four or five tabs. `'fit'` is the same pill sized to its tabs, for two or
+ * three: stretched to 92% they drift apart and the selection pill balloons, so
+ * it hugs them instead, the way the iOS 26 tab bar does.
+ */
+export type TabBarWidth = 'full' | 'floating' | 'fit';
+
+/**
+ * One tab's slot in a `fit` bar. Room for an icon over the longest common label
+ * ("Calculate", "Settings") with the selection pill clear of it, and well over
+ * the 44pt touch minimum.
+ */
+const FIT_SLOT_WIDTH = 92;
 /**
  * `'filled'` is an opaque nav fill. `'glass'` is the Liquid Glass material — the
  * real system surface on iOS 26 (via `expo-glass-effect`) and a translucent
@@ -82,6 +95,14 @@ export type TabBarProps = {
   selection?: TabBarSelectionMotion;
   showLabels?: boolean;
   hidden?: boolean;
+  /**
+   * The safe-area bottom inset, usually `useSafeAreaInsets().bottom`.
+   *
+   * A full-width bar takes it as internal padding, so its fill reaches the screen
+   * edge while its content clears the home indicator. A floating bar takes it as
+   * a lift instead — the pill keeps its own height and rides above the inset,
+   * which is what makes it read as floating rather than docked.
+   */
   bottomInset?: number;
   /** Optional blur layer (e.g. `expo-blur`'s BlurView) rendered behind a transparent or glass surface. */
   blurComponent?: ReactNode;
@@ -196,7 +217,8 @@ function TabBarRoot({
   const [position] = useState(() => new Animated.Value(activeIndex));
   const [target] = useState(() => new Animated.Value(activeIndex));
   const [visibility] = useState(() => new Animated.Value(hidden ? 1 : 0));
-  const floating = width === 'floating';
+  // A `fit` bar is a floating bar in every respect but its width.
+  const floating = width === 'floating' || width === 'fit';
   const jelly = selection === 'jelly';
   const resolvedScroll: TabBarScrollBehavior = scrollBehavior ?? (floating ? 'shrink' : 'hide');
   const reactsToScroll = resolvedScroll !== 'fixed';
@@ -371,11 +393,33 @@ function TabBarRoot({
         style={[
           {
             alignSelf: floating || morphsToFloating ? 'center' : 'stretch',
-            width: floating ? '92%' : morphsToFloating ? morphWidth : '100%',
-            maxWidth: floating ? 420 : undefined,
-            minHeight: barHeight + bottomInset,
-            paddingBottom: bottomInset,
-            marginBottom: morphsToFloating ? morphMargin : undefined,
+            width:
+              width === 'fit'
+                ? items.length * FIT_SLOT_WIDTH + innerPadding * 2
+                : floating
+                  ? '92%'
+                  : morphsToFloating
+                    ? morphWidth
+                    : '100%',
+            // A `fit` bar still never runs past the floating bar's edges.
+            maxWidth: width === 'fit' ? '92%' : floating ? 420 : undefined,
+            /*
+             * A full-width bar sits on the screen edge, so it absorbs the inset as
+             * padding — its fill has to run under the home indicator while its
+             * content clears it. A floating bar is the opposite case: it is a pill
+             * with air around it, so the inset has to *lift* it. Padding it instead
+             * grew the pill to 98pt on a 34pt inset while the row stayed 64pt at the
+             * top, which put the icons 17pt above the middle of the shape they sit
+             * in and dropped the bar's bottom edge flush onto the screen edge — a
+             * floating bar that was only floating horizontally.
+             */
+            minHeight: floating ? barHeight : barHeight + bottomInset,
+            paddingBottom: floating ? 0 : bottomInset,
+            marginBottom: floating
+              ? bottomInset
+              : morphsToFloating
+                ? morphMargin
+                : undefined,
             borderRadius: floating ? t.radii.full : morphsToFloating ? morphRadius : 0,
             // Only a glass surface carries an edge — the material's lit hairline in
             // the fallback, and nothing (width 0) on the native path where the

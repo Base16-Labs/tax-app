@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Demo recordings: shared separately, too large for the repo
+*.mp4

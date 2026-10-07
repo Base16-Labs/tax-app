@@ -1,58 +1,47 @@
-# Naija Tax
+# Take Home
 
-A Nigerian income tax calculator, built to demo [Arlo UI](https://arloui.com)'s **Chart** and
-**Tab Bar** components in a real app rather than a storybook.
+Your pay after tax in the **United Kingdom**, the **United States** or **Nigeria**, built entirely
+with [Arlo UI](https://arloui.com) as a real app rather than a storybook.
 
-It works out what you owe under the **Nigeria Tax Act 2025** — the law in force since
-1 January 2026 — and shows you what the same income would have cost under the Personal Income
-Tax Act it replaced.
+The first screen asks where you are paid. That one choice sets the tax rules and the currency
+together (pounds, dollars or naira), and the app opens on a typical salary for that country. You
+can switch country at any time; each country keeps its own figures.
 
 ## What it demos
 
 | Arlo UI component | Where it's used |
 | --- | --- |
-| `TabBar` (floating, glass, `jelly` selection) | App shell — reacts to scroll via `useTabBarScroll` |
-| `Chart` (line plot + scrub) | Compare — two regimes, linked scrubbing through `activeAt` |
-| `Chart.Donut` | Breakdown — gross split into take-home, tax, contributions |
-| `Chart.Bar` | Breakdown — tax charged by each marginal band |
-| `Chart.Meter` | Calculate — effective rate against the 25% ceiling |
-| `Card`, `Input`, `Chip` | Throughout |
+| `List`, `Card`, `Radio`, `Button` | Onboarding: pick a country |
+| `Sheet` | Calculate: switch country from the title |
+| `Input` (plain, no background) | Calculate: your pay, framed by its card |
+| `Tabs` (segmented, glass) | Per year or per month, US filing status, theme in Settings |
+| `Chip` | Pension, 401(k) and Nigerian contributions |
+| `Chart.Meter` | Calculate: tax as a share of pay |
+| `Card` (pressable), `Chart.Donut`, `Chart.Sparkline` | Explore: two cards that preview and open their pages |
+| `Chart.Donut`, `Chart.Bar` | Breakdown: where pay goes, tax by band |
+| `Chart` (line plot, linked scrub) | Explore more: take-home and tax across salaries |
+| `TabBar` (floating, glass, `jelly`) | App shell, reacting to scroll |
 
 Every component was installed with the real CLI against the public registry:
 
 ```bash
 npx arloui init
-npx arloui add chart tab-bar card button input field badge chip
+npx arloui add chart tab-bar tabs list card input chip radio button sheet
 ```
 
 ## The tax rules
 
-**Nigeria Tax Act 2025** (current). Chargeable income is gross, less pension / NHF / NHIS /
-life assurance, less rent relief. Then:
+| | United Kingdom | United States | Nigeria |
+| --- | --- | --- | --- |
+| Year | 2026/27 | 2026 | 2026 (Nigeria Tax Act 2025) |
+| Income tax | 20 / 40 / 45% after a £12,570 allowance, tapered above £100,000 | Federal brackets 10% to 37% after the standard deduction | 0% on the first ₦800,000, then 15% to 25% |
+| Payroll tax | National Insurance: 8%, then 2% above £50,270 | Social Security 6.2% up to $184,500; Medicare 1.45% plus 0.9% on high wages | None |
+| Pension | Workplace pension, before income tax | Traditional 401(k), before income tax | Pension, NHF and NHIS, plus rent relief |
+| Not covered | Scottish rates | State and local taxes | Business and capital income |
 
-| Rate | Band |
-| --- | --- |
-| 0% | first ₦800,000 |
-| 15% | ₦800,000 – ₦3m |
-| 18% | ₦3m – ₦12m |
-| 21% | ₦12m – ₦25m |
-| 23% | ₦25m – ₦50m |
-| 25% | above ₦50m |
-
-- **Rent relief** — 20% of annual rent, capped at ₦500,000. Tenants only.
-- **The ₦800,000 exemption** is a zero-rated band, not a cliff. Earning ₦800,001 costs you
-  15 kobo, not 15% of everything.
-- The **Consolidated Relief Allowance was abolished** — the zero band and rent relief replaced it.
-
-**Personal Income Tax Act** (old, kept for comparison). CRA of the higher of ₦200,000 or 1% of
-gross income, plus 20% of gross income; bands 7 / 11 / 15 / 19 / 21 / 24%; a 1% minimum tax when
-the bands charged less.
-
-### What the reform actually did
-
-Most earners pay less. Above roughly **₦25.6m a year** they pay more — the top rate rose from
-24% to 25% and the CRA that softened the old bands is gone. The Compare tab plots both curves
-and finds the crossover for your own reliefs by bisection.
+Sources: gov.uk rates for 2026/27, IRS Rev. Proc. 2025-32, the SSA's 2026 wage base, and the
+Nigeria Tax Act 2025. The Explore tab prices a raise at your own salary, and for Nigeria it also
+compares the same pay under the Personal Income Tax Act the 2026 reform replaced.
 
 ## Running it
 
@@ -61,23 +50,15 @@ npm install
 npx expo start
 ```
 
-Then open it in **Expo Go** (SDK 57 needs Expo Go 57.0.9). This is the path that works today,
-and the glass tab bar takes its supported translucent-overlay fallback.
+Then open it in **Expo Go** (SDK 57). The glass tab bar and segmented controls take their supported
+translucent fallback there.
 
-`npm run ios` does a native dev build, which is what gets you the real Liquid Glass material
-on iOS 26. It currently fails on **Xcode 26.0.1**: `expo-modules-jsi@57.1.0` uses `weak let`
-(SE-0481), which that Xcode's Swift 6.2 does not accept. Xcode 26.1+ fixes it. Nothing in this
-app is involved — it is an upstream toolchain gap.
-
-If `pod install` fails with `Unicode Normalization not appropriate for ASCII-8BIT`, run it with
-a UTF-8 locale:
+`npm run ios` does a native dev build, which is what gets you the real Liquid Glass material on
+iOS 26. It needs Xcode 26.1 or later: `expo-modules-jsi@57.1.0` uses `weak let` (SE-0481), which
+Xcode 26.0.1's Swift 6.2 does not accept.
 
 ```bash
-cd ios && LANG=en_US.UTF-8 pod install
-```
-
-```bash
-npm test        # 32 tests over the tax engine
+npm test        # the three tax engines
 npm run typecheck
 ```
 
@@ -86,32 +67,23 @@ npm run typecheck
 ```
 src/
   tax/
-    bands.ts          the two band tables, as layers not brackets
-    calculate.ts      pure engine — no React, no formatting
-    format.ts         naira formatting and input parsing
-    __tests__/        band edges, reliefs, minimum tax, crossover
-  screens/            Calculate · Breakdown · Compare · Guide
-  components/         shared Screen / Row / Divider
-  state.tsx           one input, four screens
-components/ui/        Arlo UI, copied in by the CLI — yours to edit
+    types.ts          the input and payslip every country shares
+    progressive.ts    band filling and the measured marginal rate
+    gb.ts  us.ts  ng.ts   one engine per country, no React, no formatting
+    countries.ts      currency, defaults and rules text for each country
+    format.ts         money in the chosen currency, input parsing
+    __tests__/        hand-worked figures for each country
+  screens/            Onboarding · Calculate · Explore (Breakdown, Explore more, rules) · Settings
+  components/         Screen, Text, the country list and sheet
+  state.tsx           one country, its inputs, every screen; saved between launches
+components/ui/        Arlo UI, copied in by the CLI, yours to edit
 lib/arloui/           tokens, theme provider, glass, haptics
 ```
 
-The engine is deliberately free of React: three screens ask it the same question, and a total
-alone could never say which band did the damage, so it returns per-band detail.
+Each engine turns the same input into the same payslip, so the screens never need to know which
+tax system produced a number.
 
 ## A note on accuracy
 
-An estimate, not tax advice. It models PAYE on employment income for a resident individual and
-leaves out capital gains, business income, and anything an employer treats unusually.
-
-## A note on the chart source
-
-Building this app turned up a blocker in the published registry: `npx arloui add chart` copied
-five files importing `rgbaFromHex` from `@arloui/tokens` — a package a consumer app does not
-have, and an import the CLI does not rewrite — so the project would not typecheck or bundle.
-
-That is fixed and shipped. `npx arloui add chart` against `https://arloui.com/r` now produces a
-project that typechecks and bundles, and the chart source here is a clean install from it — no
-hand-patching. The same release also moved the chart's font weights and dimensions onto named
-scales and made a partial composition warn instead of silently dropping parts.
+An estimate, not tax advice. It models tax on employment income for a resident with a single job,
+using the published rates for the year shown.

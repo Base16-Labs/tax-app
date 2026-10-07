@@ -9,8 +9,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTokens } from '../../lib/arloui/theme-provider';
-import { usePressFeedback } from './button/press-feedback';
+import { useTokens } from '../../../lib/arloui/theme-provider';
+import { usePressFeedback } from '../button/press-feedback';
 
 type Tokens = ReturnType<typeof useTokens>;
 

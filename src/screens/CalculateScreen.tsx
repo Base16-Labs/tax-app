@@ -1,240 +1,279 @@
 /**
  * What you earn, what you keep.
  *
- * The hero figure is monthly take-home, because that is the number people
- * actually recognise. The annual figures sit under it rather than above.
+ * Your pay comes first, so the first thing on screen is where to type, and the
+ * result sits right under it and updates as you type. The hero figure is monthly
+ * take-home, because that is the number people actually recognise.
  */
-import { useState } from 'react';
-import { Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { useTokens } from '../../lib/arloui/theme-provider';
 import { Card } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
-import { Chip } from '../../components/ui/chip';
 import { Chart } from '../../components/ui/chart';
-import { Screen, Row, Divider, SectionLabel } from '../components/Screen';
-import { useTax } from '../state';
-import { groupDigits, naira, parseAmount, percent } from '../tax/format';
-import { PENSION_RATE, NHF_RATE, NHIS_RATE } from '../tax/bands';
+import { Chip } from '../../components/ui/chip';
+import { Input } from '../../components/ui/input';
+import { List } from '../../components/ui/list';
+import { Tabs } from '../../components/ui/tabs';
+import { useCountrySheet } from '../components/CountrySheet';
+import { Flag } from '../components/Flag';
+import { HostBlur } from '../components/HostBlur';
+import { InView, ListCard, Screen, SectionLabel } from '../components/Screen';
+import { Text } from '../components/Text';
+import { useTax, type IncomePeriod } from '../state';
+import { groupDigits, parseAmount, percent } from '../tax/format';
+import { NHF_RATE, NHIS_RATE, PENSION_RATE } from '../tax/ng-rules';
+import type { FilingStatus, TaxInput } from '../tax/types';
 
-export function CalculateScreen({
-  onScroll,
-}: {
-  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-}) {
+/** Nigeria's statutory contributions, each switched on or off on its own. */
+const NG_CONTRIBUTIONS = [
+  { key: 'pensionRate', label: 'Pension 8%', rate: PENSION_RATE },
+  { key: 'nhfRate', label: 'NHF 2.5%', rate: NHF_RATE },
+  { key: 'nhisRate', label: 'NHIS 5%', rate: NHIS_RATE },
+] as const;
+
+export function CalculateScreen() {
   const t = useTokens();
-  const { input, update, current, comparison } = useTax();
+  const { country, input, update, payslip, marginal, reform, money, incomePeriod, setIncomePeriod } = useTax();
+  const sheet = useCountrySheet();
+  const perMonth = incomePeriod === 'month';
+  const joint = country.code === 'US' && input.filingStatus === 'joint';
 
-  // The inputs are held as text so typing "1,2" doesn't get reformatted
-  // mid-keystroke into something the user didn't type.
-  const [grossText, setGrossText] = useState(() => groupDigits(String(input.grossAnnual)));
+  /** The stored income is always a year; this is how it reads in the chosen period. */
+  const grossFor = (period: IncomePeriod, gross = input.grossAnnual) =>
+    groupDigits(String(period === 'month' ? Math.round(gross / 12) : gross));
+
+  // The fields hold text so typing "1,2" is not reformatted mid-keystroke. They
+  // reload when the country changes, since each country keeps its own figures.
+  const [grossText, setGrossText] = useState(() => grossFor(incomePeriod));
   const [rentText, setRentText] = useState(() => groupDigits(String(input.annualRent)));
+  useEffect(() => {
+    setGrossText(grossFor(incomePeriod));
+    setRentText(groupDigits(String(input.annualRent)));
+    // Only on a country switch: while typing, the text is the source of truth.
+  }, [country.code]);
 
-  const exempt = current.grossAnnual > 0 && current.annualTax === 0;
+  const salaryLabel = `${joint ? 'Household' : 'Gross'} ${perMonth ? 'monthly' : 'annual'} pay`;
+  const step = money(country.raiseStep);
 
   return (
     <Screen
       title="What you keep"
-      subtitle="Nigeria Tax Act 2025 — the rules in force since January 2026."
-      onScroll={onScroll}
-    >
-      {/* ---------------------------------------------------------- hero --- */}
-      <Card padding="lg" surface="elevated" elevation="sm">
-        <Text
-          style={{
-            color: t.colors.textSecondary,
-            fontFamily: t.fontFamilies.sans,
-            ...t.typography.overline,
-            textTransform: 'uppercase',
-          }}
+      subtitle={country.taxYear}
+      accessory={
+        <Chip
+          type="assist"
+          leadingIcon={<Flag code={country.code} width={21} />}
+          onPress={sheet.open}
+          accessibilityLabel={`${country.name}, ${country.currency.code}. Change country`}
         >
+          {country.currency.code}
+        </Chip>
+      }
+    >
+      {/* ------------------------------------------------------- your pay --- */}
+      <SectionLabel>Your pay</SectionLabel>
+      <Card padding="md">
+        <View style={{ gap: t.spacing[4] }}>
+          {/* Only changes how the pay is typed. The stored yearly figure is left
+              alone, so flipping back and forth cannot drift it through rounding. */}
+          <Tabs
+            appearance="segmented"
+            surface="glass"
+            blurComponent={<HostBlur />}
+            value={incomePeriod}
+            onValueChange={(next) => {
+              const period = next as IncomePeriod;
+              setIncomePeriod(period);
+              setGrossText(grossFor(period));
+            }}
+            accessibilityLabel="Enter pay per year or per month"
+          >
+            <Tabs.Item value="year" label="Per year" />
+            <Tabs.Item value="month" label="Per month" />
+          </Tabs>
+
+          {/* Arlo's plain (no-background) field: the card already frames it, so
+              a filled box inside it would be a frame inside a frame. */}
+          <Input
+            appearance="plain"
+            label={salaryLabel}
+            value={grossText}
+            onChangeText={(text) => {
+              setGrossText(groupDigits(text));
+              update({ grossAnnual: parseAmount(text) * (perMonth ? 12 : 1) });
+            }}
+            keyboardType="number-pad"
+            inputMode="numeric"
+            placeholder="0"
+            leadingIcon={<CurrencyMark symbol={country.currency.symbol} large />}
+            // Arlo draws a plain field's value in secondary ink; a typed amount is
+            // the most important thing on the screen, so it gets primary ink and
+            // reads as a value, not a placeholder.
+            inputStyle={{ color: t.colors.textPrimary }}
+            fullWidth
+          />
+          {/* Arlo centres a plain field's helper, which suits a centred amount
+              entry. These fields are left-aligned under their labels, so the
+              note is a caption of its own, aligned with them. */}
+          <FieldNote>
+            {perMonth ? `Before tax. Taxed as ${money(input.grossAnnual)} a year.` : 'Before tax and deductions.'}
+          </FieldNote>
+
+          {country.code === 'NG' ? (
+            <>
+              <Hairline />
+              <Input
+                appearance="plain"
+                size="sm"
+                label="Annual rent paid"
+                value={rentText}
+                onChangeText={(text) => {
+                  setRentText(groupDigits(text));
+                  update({ annualRent: parseAmount(text) });
+                }}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                placeholder="0"
+                leadingIcon={<CurrencyMark symbol={country.currency.symbol} />}
+                inputStyle={{ color: t.colors.textPrimary }}
+                fullWidth
+              />
+              <FieldNote>Tenants only. Relief is 20% of rent, up to ₦500,000.</FieldNote>
+            </>
+          ) : null}
+
+          {country.code === 'US' ? (
+            <>
+              <Hairline />
+              <View style={{ gap: t.spacing[2] }}>
+                <Text variant="caption">Filing status</Text>
+                <Tabs
+                  appearance="segmented"
+                  surface="glass"
+                  blurComponent={<HostBlur />}
+                  value={input.filingStatus}
+                  onValueChange={(next) => update({ filingStatus: next as FilingStatus })}
+                  accessibilityLabel="Filing status"
+                >
+                  <Tabs.Item value="single" label="Single" />
+                  <Tabs.Item value="joint" label="Married, joint" />
+                </Tabs>
+              </View>
+            </>
+          ) : null}
+        </View>
+      </Card>
+
+      {/* ---------------------------------------------------------- result --- */}
+      <Card padding="lg" surface="elevated" elevation="sm">
+        <Text variant="overline" tone="secondary">
           Monthly take-home
         </Text>
-        <Text
-          style={{
-            color: t.colors.textPrimary,
-            fontFamily: t.fontFamilies.sans,
-            ...t.typography.displayLargeEmphasized,
-            fontVariant: ['tabular-nums'],
-            marginTop: t.spacing[1],
-          }}
-        >
-          {naira(current.monthlyTakeHome)}
+        <Text variant="display" style={{ marginTop: t.spacing[1] }}>
+          {money(payslip.takeHome / 12)}
         </Text>
-        <Text
-          style={{
-            color: t.colors.textSecondary,
-            fontFamily: t.fontFamilies.sans,
-            ...t.typography.bodyMedium,
-            marginTop: t.spacing[1],
-          }}
-        >
-          {naira(current.annualTakeHome)} a year, after {naira(current.annualTax)} tax
+        <Text style={{ marginTop: t.spacing[1] }}>
+          {money(payslip.takeHome)} a year, after {money(payslip.totalTax)} tax
         </Text>
 
-        <View style={{ marginTop: t.spacing[5] }}>
-          {/* One value against a target: tax as a share of gross. The bands cap
-              at 25%, so that is the meter's top — not 100%, which would make
-              every real effective rate look like a sliver. */}
-          <Chart.Meter
-            value={current.effectiveRate}
-            max={0.25}
-            shape="bar"
-            tone={exempt ? 'positive' : 'brand'}
-            accessibilityLabel={`Effective tax rate ${percent(current.effectiveRate)}`}
-          >
-            {/* The readout is a part, not a prop — and it takes an already
-                formatted string, so the meter never has to know about naira. */}
-            <Chart.Meter.Value value={percent(current.effectiveRate)} />
-          </Chart.Meter>
-          <Text
-            style={{
-              color: t.colors.textTertiary,
-              fontFamily: t.fontFamilies.sans,
-              ...t.typography.bodySmall,
-              marginTop: t.spacing[2],
-            }}
-          >
-            Effective rate against the 25% ceiling · {percent(current.marginalRate, 0)} on your next
-            naira
+        <View style={{ marginTop: t.spacing[5], gap: t.spacing[2] }}>
+          {/* Total tax as a share of pay, against the highest rate anyone here
+              pays on their last unit of pay, so a real rate never looks like a sliver. */}
+          <InView>
+            <Chart.Meter
+              value={payslip.effectiveRate}
+              max={country.topRate}
+              shape="bar"
+              tone={payslip.totalTax === 0 ? 'positive' : 'brand'}
+              accessibilityLabel={`${percent(payslip.effectiveRate)} of your pay goes in tax`}
+            >
+              <Chart.Meter.Value value={percent(payslip.effectiveRate)} />
+            </Chart.Meter>
+          </InView>
+          <Text variant="caption">
+            {payslip.totalTax === 0 && payslip.grossAnnual > 0
+              ? 'You owe no tax at this income.'
+              : `Of your pay in tax · ${percent(marginal, 0)} of your next ${step}`}
           </Text>
         </View>
       </Card>
 
-      {exempt ? (
-        <Card padding="md" surface="default">
-          <Text
-            style={{
-              color: t.colors.chartPositive,
-              fontFamily: t.fontFamilies.sans,
-              ...t.typography.headingSmallEmphasized,
-            }}
-          >
-            You owe no income tax
-          </Text>
-          <Text
-            style={{
-              color: t.colors.textSecondary,
-              fontFamily: t.fontFamilies.sans,
-              ...t.typography.bodyMedium,
-              marginTop: t.spacing[1],
-            }}
-          >
-            After reliefs your chargeable income is {naira(current.chargeableIncome)}, which sits
-            inside the zero-rated first ₦800,000.
-          </Text>
-        </Card>
-      ) : null}
-
-      {/* -------------------------------------------------------- inputs --- */}
-      <SectionLabel>Your income</SectionLabel>
+      {/* ------------------------------------------------------- pension --- */}
+      {/* Section labels are set in capitals, which would turn "401(k)" into
+          "401(K)", so the scheme is named in the sentence instead. */}
+      <SectionLabel>{country.code === 'NG' ? 'Contributions' : country.code === 'US' ? 'Retirement' : 'Pension'}</SectionLabel>
       <Card padding="md">
-        <Input
-          label="Gross annual income"
-          value={grossText}
-          onChangeText={(text) => {
-            setGrossText(groupDigits(text));
-            update({ grossAnnual: parseAmount(text) });
-          }}
-          keyboardType="number-pad"
-          inputMode="numeric"
-          placeholder="0"
-          leadingIcon={<NairaMark />}
-          helperText="Total pay before any deduction."
-          fullWidth
-        />
-        <View style={{ height: t.spacing[4] }} />
-        <Input
-          label="Annual rent paid"
-          value={rentText}
-          onChangeText={(text) => {
-            setRentText(groupDigits(text));
-            update({ annualRent: parseAmount(text) });
-          }}
-          keyboardType="number-pad"
-          inputMode="numeric"
-          placeholder="0"
-          leadingIcon={<NairaMark />}
-          helperText="Tenants only — relief is 20% of rent, capped at ₦500,000."
-          fullWidth
-        />
-      </Card>
-
-      {/* --------------------------------------------------- contributions --- */}
-      <SectionLabel>Contributions</SectionLabel>
-      <Card padding="md">
-        <Text
-          style={{
-            color: t.colors.textSecondary,
-            fontFamily: t.fontFamilies.sans,
-            ...t.typography.bodyMedium,
-            marginBottom: t.spacing[3],
-          }}
-        >
-          Statutory contributions come off before tax is worked out. Tap to include.
+        <Text style={{ marginBottom: t.spacing[3] }}>
+          {country.code === 'NG'
+            ? 'Statutory contributions come off before tax is worked out. Tap to include.'
+            : `Your ${country.pension.label.toLowerCase()} is paid in before income tax, so it lowers your tax bill. The money is still yours.`}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing[2] }}>
-          <Chip
-            type="filter"
-            selected={input.pensionRate > 0}
-            onPress={() => update({ pensionRate: input.pensionRate > 0 ? 0 : PENSION_RATE })}
-          >
-            Pension 8%
-          </Chip>
-          <Chip
-            type="filter"
-            selected={input.nhfRate > 0}
-            onPress={() => update({ nhfRate: input.nhfRate > 0 ? 0 : NHF_RATE })}
-          >
-            NHF 2.5%
-          </Chip>
-          <Chip
-            type="filter"
-            selected={input.nhisRate > 0}
-            onPress={() => update({ nhisRate: input.nhisRate > 0 ? 0 : NHIS_RATE })}
-          >
-            NHIS 5%
-          </Chip>
+          {country.code === 'NG'
+            ? NG_CONTRIBUTIONS.map(({ key, label, rate }) => (
+                <Chip
+                  key={key}
+                  type="filter"
+                  selected={input[key] > 0}
+                  onPress={() => update({ [key]: input[key] > 0 ? 0 : rate } as Partial<TaxInput>)}
+                >
+                  {label}
+                </Chip>
+              ))
+            : country.pension.options.map((rate) => (
+                <Chip
+                  key={rate}
+                  type="filter"
+                  selected={Math.abs(input.pensionRate - rate) < 1e-9}
+                  onPress={() => update({ pensionRate: rate })}
+                >
+                  {rate === 0 ? 'None' : percent(rate, 0)}
+                </Chip>
+              ))}
         </View>
       </Card>
 
       {/* ------------------------------------------------------ the maths --- */}
       <SectionLabel>How it was worked out</SectionLabel>
-      <Card padding="md">
-        <Row label="Gross annual income" value={naira(current.grossAnnual)} />
-        <Divider />
-        {current.deductions.map((d) => (
-          <Row key={d.label} label={d.label} value={`− ${naira(d.amount)}`} tone="muted" />
+      <ListCard>
+        <List.Row title="Gross annual pay" value={money(payslip.grossAnnual)} />
+        {payslip.contributions.map((line) => (
+          <List.Row key={line.label} title={line.label} value={`− ${money(line.amount)}`} />
         ))}
-        <Divider />
-        <Row label="Chargeable income" value={naira(current.chargeableIncome)} />
-        <Row
-          label="Tax due"
-          value={naira(current.annualTax)}
-          tone={current.annualTax > 0 ? 'negative' : 'positive'}
-          hint={`${naira(current.monthlyTax)} a month`}
+        {payslip.reliefs.map((line) => (
+          <List.Row key={line.label} title={line.label} subtitle="Tax-free" value={`− ${money(line.amount)}`} />
+        ))}
+        <List.Row title="Taxable income" value={money(payslip.taxableIncome)} />
+        <List.Row
+          title="Income tax"
+          value={money(payslip.incomeTax)}
+          valueCaption={`${money(payslip.incomeTax / 12)} a month`}
+          valueTone={payslip.incomeTax > 0 ? 'negative' : 'positive'}
         />
-        <Divider />
-        <Row
-          label="Take-home"
-          value={naira(current.annualTakeHome)}
-          tone="positive"
-          hint={`${naira(current.monthlyTakeHome)} a month`}
+        {payslip.levies.map((line) => (
+          <List.Row
+            key={line.label}
+            title={line.label}
+            value={money(line.amount)}
+            valueCaption={`${money(line.amount / 12)} a month`}
+            valueTone="negative"
+          />
+        ))}
+        <List.Row
+          title="Take-home"
+          value={money(payslip.takeHome)}
+          valueCaption={`${money(payslip.takeHome / 12)} a month`}
+          valueTone="positive"
         />
-      </Card>
+      </ListCard>
 
-      {comparison.annualSaving !== 0 ? (
-        <Card padding="md" surface="default">
-          <Text
-            style={{
-              color: t.colors.textSecondary,
-              fontFamily: t.fontFamilies.sans,
-              ...t.typography.bodyMedium,
-            }}
-          >
-            {comparison.annualSaving > 0
-              ? `The 2026 reform saves you ${naira(comparison.annualSaving)} a year against the old law.`
-              : `The 2026 reform costs you ${naira(-comparison.annualSaving)} a year against the old law.`}{' '}
-            See Compare for the full curve.
+      {reform && reform.annualSaving !== 0 ? (
+        <Card padding="md">
+          <Text>
+            {reform.annualSaving > 0
+              ? `The 2026 reform saves you ${money(reform.annualSaving)} a year against the old law.`
+              : `The 2026 reform costs you ${money(-reform.annualSaving)} a year against the old law.`}{' '}
+            See Explore for more.
           </Text>
         </Card>
       ) : null}
@@ -242,18 +281,28 @@ export function CalculateScreen({
   );
 }
 
-/** The ₦ that sits inside the amount inputs. */
-function NairaMark() {
+/** The currency symbol that sits inside the amount fields, sized to the amount. */
+function CurrencyMark({ symbol, large = false }: { symbol: string; large?: boolean }) {
   const t = useTokens();
   return (
-    <Text
-      style={{
-        color: t.colors.textTertiary,
-        fontFamily: t.fontFamilies.sans,
-        ...t.typography.bodyLarge,
-      }}
-    >
-      ₦
+    <Text tone="tertiary" style={large ? t.typography.headingLarge : t.typography.headingSmall}>
+      {symbol}
     </Text>
   );
+}
+
+/** The note under a plain field, left-aligned with its label. */
+function FieldNote({ children }: { children: string }) {
+  const t = useTokens();
+  return (
+    <Text variant="caption" style={{ marginTop: -t.spacing[3] }}>
+      {children}
+    </Text>
+  );
+}
+
+/** A rule between two plain fields, so each reads as its own row. */
+function Hairline() {
+  const t = useTokens();
+  return <View style={{ height: 1, backgroundColor: t.colors.border }} />;
 }

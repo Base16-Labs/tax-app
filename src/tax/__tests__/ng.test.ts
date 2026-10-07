@@ -8,10 +8,10 @@ import {
   rentRelief,
   sweep,
   type TaxInput,
-} from '../calculate';
-import { NTA_2025_BANDS, PITA_BANDS } from '../bands';
+} from '../ng';
+import { NTA_2025_BANDS, PITA_BANDS } from '../ng-rules';
 
-/** No contributions, no rent — so a test can aim straight at the band maths. */
+/** No contributions, no rent, so a test can aim straight at the band maths. */
 const bare = (grossAnnual: number): TaxInput => ({
   ...EMPTY_INPUT,
   grossAnnual,
@@ -72,7 +72,7 @@ describe('NTA 2025', () => {
     expect(calculateNTA2025(bare(800_001)).annualTax).toBeCloseTo(0.15, 6);
   });
 
-  it('is continuous across every band edge — no cliffs', () => {
+  it('is continuous across every band edge (no cliffs)', () => {
     const edges = [800_000, 3_000_000, 12_000_000, 25_000_000, 50_000_000];
     for (const edge of edges) {
       const below = calculateNTA2025(bare(edge)).annualTax;
@@ -114,7 +114,7 @@ describe('NTA 2025', () => {
     expect(result.chargeableIncome).toBeCloseTo(4_475_000, 6);
   });
 
-  it('never reports a consolidated relief — the NTA abolished it', () => {
+  it('never reports a consolidated relief, which the NTA abolished', () => {
     const labels = calculateNTA2025({ ...EMPTY_INPUT, grossAnnual: 5_000_000 }).deductions.map(
       (d) => d.label,
     );
@@ -180,13 +180,13 @@ describe('PITA', () => {
     expect(r.annualTax).toBeCloseTo(19_600, 6);
   });
 
-  it('owes nothing on zero gross — minimum tax does not invent a bill', () => {
+  it('owes nothing on zero gross: minimum tax does not invent a bill', () => {
     const r = calculatePITA(bare(0));
     expect(r.annualTax).toBe(0);
     expect(r.minimumTaxApplied).toBe(false);
   });
 
-  it('ignores rent — relief was an NTA invention', () => {
+  it('ignores rent: rent relief was an NTA invention', () => {
     const withRent = calculatePITA({ ...bare(5_000_000), annualRent: 3_000_000 });
     const without = calculatePITA(bare(5_000_000));
     expect(withRent.annualTax).toBeCloseTo(without.annualTax, 6);
@@ -238,7 +238,7 @@ describe('sweep', () => {
 
   it('the two curves cross exactly once', () => {
     // Below the crossover the new law is cheaper; above it, dearer. One sign
-    // change — if there were two, one of the band tables would be malformed.
+    // change. If there were two, one of the band tables would be malformed.
     const points = sweep(EMPTY_INPUT, { from: 0, to: 120_000_000, steps: 240 });
     const signs = points
       .filter((p) => p.previous > 0 || p.current > 0)

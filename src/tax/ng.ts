@@ -1,9 +1,11 @@
 /**
- * The engine. Pure arithmetic over `bands.ts` — no React, no formatting, so it
- * is testable on its own and the screens can never disagree about a number.
+ * Nigeria: the Nigeria Tax Act 2025 (in force from 1 January 2026), plus the
+ * Personal Income Tax Act it replaced, kept so the app can show what the reform
+ * changed. Pure arithmetic over `ng-rules.ts`, with no React and no formatting.
  *
- * Both regimes take the same `TaxInput` and return the same `TaxResult`, which
- * is what lets the Compare screen run one input through two laws and subtract.
+ * Both regimes return the same `TaxResult`, which is what lets one input run
+ * through two laws and be subtracted. `calculateNG` turns the current law's
+ * result into the `Payslip` every country shares.
  */
 import {
   CRA_FLOOR,
@@ -15,28 +17,16 @@ import {
   RENT_RELIEF_CAP,
   RENT_RELIEF_RATE,
   type Band,
-} from './bands';
+} from './ng-rules';
+import type { Payslip, TaxInput } from './types';
+
+export type { TaxInput };
 
 export type Regime = 'nta2025' | 'pita';
 
-export type TaxInput = {
-  /** Gross annual emolument, in naira. */
-  grossAnnual: number;
-  /** Annual rent paid. Only tenants get rent relief, and only under the NTA. */
-  annualRent: number;
-  /** Employee pension contribution as a fraction of gross. 0 to opt out. */
-  pensionRate: number;
-  /** National Housing Fund contribution as a fraction of gross. 0 to opt out. */
-  nhfRate: number;
-  /** Health insurance contribution as a fraction of gross. 0 to opt out. */
-  nhisRate: number;
-  /** Annual life assurance / annuity premium, in naira. */
-  lifePremium: number;
-};
-
 /** One band's contribution, kept so the UI can chart where the tax came from. */
 export type BandBreakdown = {
-  /** e.g. `"15%"` — the marginal rate, for labels. */
+  /** e.g. `"15%"`, the marginal rate, for labels. */
   label: string;
   rate: number;
   /** How much income fell into this band. */
@@ -77,6 +67,7 @@ export const EMPTY_INPUT: TaxInput = {
   nhfRate: 0.025,
   nhisRate: 0,
   lifePremium: 0,
+  filingStatus: 'single',
 };
 
 const clampPositive = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
@@ -84,7 +75,7 @@ const clampPositive = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
 /**
  * Walks a band table, filling each layer before moving up.
  *
- * Returns per-band detail rather than just a total — the Breakdown screen
+ * Returns per-band detail rather than just a total: the Breakdown screen
  * charts these bars, and a total alone could not say which rate did the damage.
  */
 function applyBands(chargeable: number, bands: readonly Band[]): BandBreakdown[] {
@@ -118,7 +109,7 @@ export function rentRelief(annualRent: number): number {
 
 /**
  * PITA's Consolidated Relief Allowance: the higher of ₦200,000 and 1% of gross
- * income, plus 20% of gross income — where "gross income" is already net of the
+ * income, plus 20% of gross income, where "gross income" is already net of the
  * tax-exempt contributions. Abolished by the NTA 2025.
  */
 export function consolidatedRelief(grossIncomeAfterContributions: number): number {
@@ -139,7 +130,7 @@ function contributionsOf(input: TaxInput) {
  * Nigeria Tax Act 2025.
  *
  * Contributions come off, rent relief comes off, and the remainder meets the
- * 0/15/18/21/23/25 ladder. There is no consolidated relief — the zero-rated
+ * 0/15/18/21/23/25 ladder. There is no consolidated relief; the zero-rated
  * first ₦800,000 replaced it.
  */
 export function calculateNTA2025(input: TaxInput): TaxResult {
@@ -160,8 +151,8 @@ export function calculateNTA2025(input: TaxInput): TaxResult {
   const annualTax = bands.reduce((sum, b) => sum + b.tax, 0);
 
   // Take-home is gross less tax and less the contributions that actually leave
-  // the payslip. Rent relief is not one of them — it lowers the tax bill, it is
-  // not money deducted from pay — so it is excluded here on purpose.
+  // the payslip. Rent relief is not one of them: it lowers the tax bill, it is
+  // not money deducted from pay, so it is excluded here on purpose.
   const annualTakeHome = c.gross - annualTax - c.total;
 
   return {
@@ -206,7 +197,7 @@ export function calculatePITA(input: TaxInput): TaxResult {
   const bands = applyBands(chargeableIncome, PITA_BANDS);
   const bandedTax = bands.reduce((sum, b) => sum + b.tax, 0);
 
-  // The old 1% minimum tax. Only bites where there is income to tax at all —
+  // The old 1% minimum tax. Only bites where there is income to tax at all:
   // a zero gross owes zero, not a rounding of zero.
   const minimumTax = grossIncome * PITA_MINIMUM_TAX_RATE;
   const minimumTaxApplied = c.gross > 0 && bandedTax < minimumTax;
@@ -238,7 +229,7 @@ export function calculate(input: TaxInput, regime: Regime): TaxResult {
 export type Comparison = {
   current: TaxResult;
   previous: TaxResult;
-  /** Positive means the new law charges less — the taxpayer is better off. */
+  /** Positive means the new law charges less, the taxpayer is better off. */
   annualSaving: number;
   monthlySaving: number;
   /** Saving as a share of the old bill. 0 when the old bill was 0. */
@@ -280,4 +271,35 @@ export function sweep(
       previous: calculatePITA(at).annualTax,
     };
   });
+}
+
+/**
+ * The current law as a `Payslip`. Nigeria has no separate payroll tax, so there
+ * are no levies: pension, NHF and NHIS are contributions (still yours), rent
+ * relief only shrinks the taxed income.
+ */
+export function calculateNG(input: TaxInput): Payslip {
+  const result = calculateNTA2025(input);
+  const contributions = result.deductions.filter((d) => d.label !== 'Rent relief');
+  const reliefs = result.deductions.filter((d) => d.label === 'Rent relief');
+  const contributionTotal = contributions.reduce((total, d) => total + d.amount, 0);
+  let from = 0;
+  const bands = result.bands.map((band) => {
+    const line = { ...band, from, to: band.ceiling };
+    from = band.ceiling;
+    return line;
+  });
+  return {
+    grossAnnual: result.grossAnnual,
+    contributions,
+    reliefs,
+    taxableIncome: result.chargeableIncome,
+    bands,
+    incomeTax: result.annualTax,
+    levies: [],
+    totalTax: result.annualTax,
+    contributionTotal,
+    takeHome: result.annualTakeHome,
+    effectiveRate: result.effectiveRate,
+  };
 }

@@ -1,5 +1,5 @@
 /**
- * Nigerian personal income tax — the two band tables.
+ * Nigerian personal income tax: the two band tables.
  *
  * A band is a *layer*, not a bracket: `width` is how much income the rate
  * applies to once every band below it is full. The last band has no width, so
@@ -16,11 +16,11 @@ export type Band = {
 };
 
 /**
- * Nigeria Tax Act 2025 — in force from 1 January 2026.
+ * Nigeria Tax Act 2025, in force from 1 January 2026.
  *
  * Cumulative ceilings: 800k, 3m, 12m, 25m, 50m, then open-ended. The first
  * ₦800,000 of chargeable income is taxed at 0%, which is how the Act delivers
- * the "minimum wage earners pay nothing" exemption — it is a zero-rated band,
+ * the "minimum wage earners pay nothing" exemption: it is a zero-rated band,
  * not a separate cliff, so nobody loses money by crossing ₦800,001.
  */
 export const NTA_2025_BANDS: readonly Band[] = [
@@ -33,11 +33,11 @@ export const NTA_2025_BANDS: readonly Band[] = [
 ];
 
 /**
- * Personal Income Tax Act (as amended) — the regime that applied before 2026.
+ * Personal Income Tax Act (as amended), the regime that applied before 2026.
  *
  * Kept so the app can show what the reform actually changed. Its top rate is
  * lower (24% vs 25%) but it starts taxing at the first naira of chargeable
- * income, and its reliefs work differently — see `calculate.ts`.
+ * income, and its reliefs work differently (see `calculate.ts`).
  */
 export const PITA_BANDS: readonly Band[] = [
   { width: 300_000, rate: 0.07 }, //      0 – 300k   7%
@@ -57,7 +57,7 @@ export const PENSION_RATE = 0.08; // employee share, Pension Reform Act 2014
 export const NHF_RATE = 0.025; // National Housing Fund
 export const NHIS_RATE = 0.05; // employee share, commonly 5%
 
-/** PITA's Consolidated Relief Allowance — abolished by the NTA 2025. */
+/** PITA's Consolidated Relief Allowance, abolished by the NTA 2025. */
 export const CRA_FLOOR = 200_000;
 export const CRA_PERCENT_OF_GROSS = 0.01;
 export const CRA_RATE = 0.2;
