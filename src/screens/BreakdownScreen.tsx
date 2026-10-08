@@ -30,7 +30,7 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
     >
       <SectionLabel>Where your pay goes</SectionLabel>
       {slices.length > 0 ? (
-        <Card padding="none">
+        <Card padding="none" surface="elevated">
           <View style={{ alignItems: 'center', paddingTop: t.spacing[6], paddingBottom: t.spacing[2] }}>
             <InView>
               <Chart.Donut
@@ -57,13 +57,13 @@ export function BreakdownScreen({ onBack }: { onBack: () => void }) {
           </List>
         </Card>
       ) : (
-        <Card padding="lg">
+        <Card padding="lg" surface="elevated">
           <Text style={{ textAlign: 'center' }}>Enter your pay on Calculate to see the split.</Text>
         </Card>
       )}
 
       <SectionLabel>Income tax, by band</SectionLabel>
-      <Card padding="lg">
+      <Card padding="lg" surface="elevated">
         {bars.length > 0 ? (
           <View style={{ gap: t.spacing[3] }}>
             <InView>

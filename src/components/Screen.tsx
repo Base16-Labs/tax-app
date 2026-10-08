@@ -22,6 +22,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { ChartEntranceGate } from '../../components/ui/chart';
 import { List } from '../../components/ui/list';
+import { SwipeBack } from './SwipeBack';
 import { Text } from './Text';
 
 /** Bar height (56) + its lift off the edge + breathing room under the last card. */
@@ -78,7 +79,7 @@ export function Screen({
     [onScroll],
   );
 
-  return (
+  const page = (
     <ScrollSignal.Provider value={subscribe}>
       <ScrollView
         onScroll={handleScroll}
@@ -121,6 +122,8 @@ export function Screen({
       </ScrollView>
     </ScrollSignal.Provider>
   );
+
+  return back ? <SwipeBack onBack={back.onPress}>{page}</SwipeBack> : page;
 }
 
 /** Holds a chart's entrance animation until it scrolls into view above the tab bar. */
@@ -167,7 +170,7 @@ export function SectionLabel({ children }: { children: string }) {
 /** Arlo List inside an unpadded Card. */
 export function ListCard({ children }: { children: ReactNode }) {
   return (
-    <Card padding="none">
+    <Card padding="none" surface="elevated">
       <List divider="balanced">{children}</List>
     </Card>
   );

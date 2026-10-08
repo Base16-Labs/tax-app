@@ -14,7 +14,7 @@ export function CountryList({
   onChange: (code: CountryCode) => void;
 }) {
   return (
-    <Card padding="none">
+    <Card padding="none" surface="elevated">
       <List divider="inset">
         {COUNTRY_ORDER.map((code) => {
           const country = COUNTRIES[code];

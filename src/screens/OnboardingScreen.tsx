@@ -8,6 +8,7 @@ import { CountryList } from '../components/CountryList';
 import { IntroIllustration } from '../components/IntroIllustration';
 import { Text } from '../components/Text';
 import { useSetup } from '../state';
+import { load, save } from '../storage';
 import { COUNTRIES } from '../tax/countries';
 import type { CountryCode } from '../tax/types';
 
@@ -22,9 +23,15 @@ function regionGuess(): CountryCode | null {
 }
 
 export function OnboardingScreen() {
-  const [step, setStep] = useState<'intro' | 'country'>('intro');
+  // The intro shows once; after that (e.g. Start over) onboarding opens on the country step.
+  const [step, setStep] = useState<'intro' | 'country'>(() => (load('introSeen', false) ? 'country' : 'intro'));
   return step === 'intro' ? (
-    <IntroStep onStart={() => setStep('country')} />
+    <IntroStep
+      onStart={() => {
+        save('introSeen', true);
+        setStep('country');
+      }}
+    />
   ) : (
     <CountryStep onBack={() => setStep('intro')} />
   );

@@ -24,7 +24,7 @@ export function RulesScreen({ onBack }: { onBack: () => void }) {
       <Text variant="caption">{country.scope}</Text>
 
       <SectionLabel>Income tax bands</SectionLabel>
-      <Card padding="none">
+      <Card padding="none" surface="elevated">
         <List divider="balanced" density="compact">
           {bands.map((band) => (
             <List.Row
@@ -52,7 +52,7 @@ export function RulesScreen({ onBack }: { onBack: () => void }) {
       </ListCard>
 
       <SectionLabel>Order of operations</SectionLabel>
-      <Card padding="md">
+      <Card padding="md" surface="elevated">
         {country.steps(input).map((step, i) => (
           <View key={step} style={{ flexDirection: 'row', gap: t.spacing[3], paddingVertical: t.spacing[2] }}>
             <Text tone="tertiary" style={{ width: 18, fontVariant: ['tabular-nums'] }}>

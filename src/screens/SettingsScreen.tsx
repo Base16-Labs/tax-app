@@ -84,7 +84,7 @@ function SettingsHome({ onOpen }: { onOpen: (page: Page) => void }) {
         <List.Row
           leading={<OutlineArrowCounterClockwise {...icon} />}
           title="Start over"
-          subtitle="Back to the welcome screen"
+          subtitle="Choose your country again"
           onPress={() => setCountry(null)}
         />
       </ListCard>

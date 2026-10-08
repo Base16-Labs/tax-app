@@ -1,12 +1,14 @@
 /** Calculate: income entry and take-home result. */
-import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, View, type TextInput } from 'react-native';
+import { OutlinePencilSimple } from '@arloui/icons';
 import { useTokens } from '../../lib/arloui/theme-provider';
 import { Card } from '../../components/ui/card';
 import { Chart } from '../../components/ui/chart';
 import { Chip } from '../../components/ui/chip';
-import { Input } from '../../components/ui/input';
+import { Input, InputAction } from '../../components/ui/input';
 import { List } from '../../components/ui/list';
+import { Radio } from '../../components/ui/radio';
 import { Tabs } from '../../components/ui/tabs';
 import { useCountrySheet } from '../components/CountrySheet';
 import { Flag } from '../components/Flag';
@@ -17,6 +19,11 @@ import { useTax, type IncomePeriod } from '../state';
 import { groupDigits, parseAmount, percent } from '../tax/format';
 import { NHF_RATE, NHIS_RATE, PENSION_RATE } from '../tax/ng-rules';
 import type { FilingStatus, TaxInput } from '../tax/types';
+
+const FILING: { value: FilingStatus; label: string }[] = [
+  { value: 'single', label: 'Single' },
+  { value: 'joint', label: 'Married, joint' },
+];
 
 /** Nigeria's statutory contributions, each switched on or off on its own. */
 const NG_CONTRIBUTIONS = [
@@ -29,6 +36,8 @@ export function CalculateScreen() {
   const t = useTokens();
   const { country, input, update, payslip, marginal, reform, money, incomePeriod, setIncomePeriod } = useTax();
   const sheet = useCountrySheet();
+  const grossRef = useRef<TextInput>(null);
+  const rentRef = useRef<TextInput>(null);
   const perMonth = incomePeriod === 'month';
   const joint = country.code === 'US' && input.filingStatus === 'joint';
 
@@ -64,7 +73,7 @@ export function CalculateScreen() {
       }
     >
       <SectionLabel>Your pay</SectionLabel>
-      <Card padding="md">
+      <Card padding="md" surface="elevated">
         <View style={{ gap: t.spacing[4] }}>
           {/* Only changes the entry period; the stored annual figure is untouched. */}
           <Tabs
@@ -84,6 +93,7 @@ export function CalculateScreen() {
           </Tabs>
 
           <Input
+            ref={grossRef}
             appearance="plain"
             label={salaryLabel}
             value={grossText}
@@ -95,6 +105,7 @@ export function CalculateScreen() {
             inputMode="numeric"
             placeholder="0"
             leadingIcon={<CurrencyMark symbol={country.currency.symbol} large />}
+            trailingAction={<EditAction label={`Edit ${salaryLabel.toLowerCase()}`} onPress={() => grossRef.current?.focus()} />}
             // Plain fields draw the value in secondary ink; use primary for the amount.
             inputStyle={{ color: t.colors.textPrimary }}
             fullWidth
@@ -108,6 +119,7 @@ export function CalculateScreen() {
             <>
               <Hairline />
               <Input
+                ref={rentRef}
                 appearance="plain"
                 size="sm"
                 label="Annual rent paid"
@@ -120,6 +132,7 @@ export function CalculateScreen() {
                 inputMode="numeric"
                 placeholder="0"
                 leadingIcon={<CurrencyMark symbol={country.currency.symbol} />}
+                trailingAction={<EditAction label="Edit annual rent" onPress={() => rentRef.current?.focus()} />}
                 inputStyle={{ color: t.colors.textPrimary }}
                 fullWidth
               />
@@ -132,24 +145,23 @@ export function CalculateScreen() {
               <Hairline />
               <View style={{ gap: t.spacing[2] }}>
                 <Text variant="caption">Filing status</Text>
-                <Tabs
-                  appearance="segmented"
-                  surface="glass"
-                  blurComponent={<HostBlur />}
-                  value={input.filingStatus}
-                  onValueChange={(next) => update({ filingStatus: next as FilingStatus })}
-                  accessibilityLabel="Filing status"
-                >
-                  <Tabs.Item value="single" label="Single" />
-                  <Tabs.Item value="joint" label="Married, joint" />
-                </Tabs>
+                <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: t.spacing[6] }}>
+                  {FILING.map((option) => (
+                    <RadioOption
+                      key={option.value}
+                      label={option.label}
+                      selected={input.filingStatus === option.value}
+                      onSelect={() => update({ filingStatus: option.value })}
+                    />
+                  ))}
+                </View>
               </View>
             </>
           ) : null}
         </View>
       </Card>
 
-      <Card padding="lg" surface="elevated" elevation="sm">
+      <Card padding="lg" surface="elevated">
         <Text variant="overline" tone="secondary">
           Monthly take-home
         </Text>
@@ -183,7 +195,7 @@ export function CalculateScreen() {
 
       {/* Overline uppercases text ("401(K)"), so the scheme is named in the body copy. */}
       <SectionLabel>{country.code === 'NG' ? 'Contributions' : country.code === 'US' ? 'Retirement' : 'Pension'}</SectionLabel>
-      <Card padding="md">
+      <Card padding="md" surface="elevated">
         <Text style={{ marginBottom: t.spacing[3] }}>
           {country.code === 'NG'
             ? 'Statutory contributions come off before tax is worked out. Tap to include.'
@@ -248,7 +260,7 @@ export function CalculateScreen() {
       </ListCard>
 
       {reform && reform.annualSaving !== 0 ? (
-        <Card padding="md">
+        <Card padding="md" surface="elevated">
           <Text>
             {reform.annualSaving > 0
               ? `The 2026 reform saves you ${money(reform.annualSaving)} a year against the old law.`
@@ -285,4 +297,31 @@ function FieldNote({ children }: { children: string }) {
 function Hairline() {
   const t = useTokens();
   return <View style={{ height: 1, backgroundColor: t.colors.border }} />;
+}
+
+/** Pencil button on an amount field; focuses it so it's clear the figure is editable. */
+function EditAction({ label, onPress }: { label: string; onPress: () => void }) {
+  const t = useTokens();
+  return (
+    <InputAction accessibilityLabel={label} onPress={onPress}>
+      <OutlinePencilSimple color={t.colors.interactivePrimary} width={20} height={20} />
+    </InputAction>
+  );
+}
+
+/** A radio with its label; the whole row is the tap target. */
+function RadioOption({ label, selected, onSelect }: { label: string; selected: boolean; onSelect: () => void }) {
+  const t = useTokens();
+  return (
+    <Pressable
+      onPress={onSelect}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing[2], minHeight: t.sizing.touchTarget.minimum }}
+    >
+      <Radio selected={selected} onSelect={onSelect} accessibilityElementsHidden importantForAccessibility="no" />
+      <Text tone="primary">{label}</Text>
+    </Pressable>
+  );
 }

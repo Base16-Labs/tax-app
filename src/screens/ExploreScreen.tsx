@@ -64,7 +64,7 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
       subtitle={`How tax grows with pay in ${country.inProse}.`}
       back={{ label: 'Explore', onPress: onBack }}
     >
-      <Card padding="lg" surface="elevated" elevation="sm">
+      <Card padding="lg" surface="elevated">
         <Text variant="overline" tone="secondary">
           Of a {money(step)} raise you keep
         </Text>
@@ -77,7 +77,7 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
       </Card>
 
       <SectionLabel>Across salaries</SectionLabel>
-      <Card padding="lg">
+      <Card padding="lg" surface="elevated">
         <View style={{ gap: t.spacing[6] }}>
           <RangeChart title="Take-home" data={takeHome} tone="positive" activeAt={scrubAt} onScrub={handleScrub} />
           <RangeChart title="Tax" data={tax} tone="negative" activeAt={scrubAt} onScrub={handleScrub} />
@@ -105,7 +105,7 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
         <List.Row title={`Tax on the next ${money(step)}`} value={percent(thereMarginal, 0)} />
       </ListCard>
 
-      <Card padding="md">
+      <Card padding="md" surface="elevated">
         <Text variant="heading">{insight.title}</Text>
         <Text style={{ marginTop: t.spacing[2] }}>{insight.body}</Text>
       </Card>
@@ -133,7 +133,7 @@ export function ExploreScreen({ onBack }: { onBack: () => void }) {
             />
           </ListCard>
           {crossover ? (
-            <Card padding="md">
+            <Card padding="md" surface="elevated">
               <Text variant="heading">Not a cut for everyone</Text>
               <Text style={{ marginTop: t.spacing[2] }}>
                 Below about {moneyShort(crossover)} a year you pay less than under the old law. Above

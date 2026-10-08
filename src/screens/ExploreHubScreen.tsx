@@ -78,7 +78,7 @@ function HubCard({
 }) {
   const t = useTokens();
   return (
-    <Card padding="lg" surface="elevated" elevation="sm" onPress={onPress} accessibilityLabel={`${title}. ${body}`}>
+    <Card padding="lg" surface="elevated" onPress={onPress} accessibilityLabel={`${title}. ${body}`}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing[4] }}>
         <View style={{ flex: 1, gap: t.spacing[2] }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing[1] }}>
