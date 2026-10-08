@@ -16,7 +16,7 @@ export type TextVariant =
 export type TextTone = 'primary' | 'secondary' | 'tertiary' | 'positive' | 'negative' | 'link';
 
 const VARIANT: Record<TextVariant, (t: Tokens) => TextStyle> = {
-  display: (t) => ({ ...t.typography.displayLargeEmphasized, fontVariant: ['tabular-nums'] }),
+  display: (t) => t.typography.displayLargeEmphasized,
   title: (t) => t.typography.displaySmallEmphasized,
   heading: (t) => t.typography.headingSmallEmphasized,
   body: (t) => t.typography.bodyMedium,
