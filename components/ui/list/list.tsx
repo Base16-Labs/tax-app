@@ -236,7 +236,9 @@ function ListRow({
       <View
         style={{
           height: 1,
-          backgroundColor: t.colors.borderSecondary,
+          // Local fix: in dark mode borderSecondary equals the elevated card colour, so the
+          // rule disappeared on cards. Use the stronger border there; light mode unchanged.
+          backgroundColor: t.name === 'dark' ? t.colors.borderPrimary : t.colors.borderSecondary,
           marginLeft:
             divider === 'edge'
               ? 0

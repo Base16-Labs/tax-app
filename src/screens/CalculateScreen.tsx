@@ -37,6 +37,8 @@ export function CalculateScreen() {
   const { country, input, update, payslip, marginal, reform, money, incomePeriod, setIncomePeriod } = useTax();
   const sheet = useCountrySheet();
   const grossRef = useRef<TextInput>(null);
+  // Arlo's chip outline matches the elevated card in dark mode; use the stronger border.
+  const chipEdge = { borderColor: t.colors.borderPrimary };
   const rentRef = useRef<TextInput>(null);
   const perMonth = incomePeriod === 'month';
   const joint = country.code === 'US' && input.filingStatus === 'joint';
@@ -208,6 +210,7 @@ export function CalculateScreen() {
                   key={key}
                   type="filter"
                   selected={input[key] > 0}
+                  style={input[key] > 0 ? undefined : chipEdge}
                   onPress={() => update({ [key]: input[key] > 0 ? 0 : rate } as Partial<TaxInput>)}
                 >
                   {label}
@@ -218,6 +221,7 @@ export function CalculateScreen() {
                   key={rate}
                   type="filter"
                   selected={Math.abs(input.pensionRate - rate) < 1e-9}
+                  style={Math.abs(input.pensionRate - rate) < 1e-9 ? undefined : chipEdge}
                   onPress={() => update({ pensionRate: rate })}
                 >
                   {rate === 0 ? 'None' : percent(rate, 0)}
@@ -296,7 +300,7 @@ function FieldNote({ children }: { children: string }) {
 /** Divider between plain fields. */
 function Hairline() {
   const t = useTokens();
-  return <View style={{ height: 1, backgroundColor: t.colors.border }} />;
+  return <View style={{ height: 1, backgroundColor: t.colors.borderPrimary }} />;
 }
 
 /** Pencil button on an amount field; focuses it so it's clear the figure is editable. */
