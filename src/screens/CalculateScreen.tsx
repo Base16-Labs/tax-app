@@ -9,16 +9,20 @@ import { Chip } from '../../components/ui/chip';
 import { Input, InputAction } from '../../components/ui/input';
 import { List } from '../../components/ui/list';
 import { Radio } from '../../components/ui/radio';
-import { Tabs } from '../../components/ui/tabs';
 import { useCountrySheet } from '../components/CountrySheet';
 import { Flag } from '../components/Flag';
-import { HostBlur } from '../components/HostBlur';
 import { InView, ListCard, Screen, SectionLabel } from '../components/Screen';
+import { Segmented } from '../components/Segmented';
 import { Text } from '../components/Text';
 import { useTax, type IncomePeriod } from '../state';
 import { groupDigits, parseAmount, percent } from '../tax/format';
 import { NHF_RATE, NHIS_RATE, PENSION_RATE } from '../tax/ng-rules';
 import type { FilingStatus, TaxInput } from '../tax/types';
+
+const PERIODS: { value: IncomePeriod; label: string }[] = [
+  { value: 'year', label: 'Per year' },
+  { value: 'month', label: 'Per month' },
+];
 
 const FILING: { value: FilingStatus; label: string }[] = [
   { value: 'single', label: 'Single' },
@@ -78,21 +82,15 @@ export function CalculateScreen() {
       <Card padding="md" surface="elevated">
         <View style={{ gap: t.spacing[4] }}>
           {/* Only changes the entry period; the stored annual figure is untouched. */}
-          <Tabs
-            appearance="segmented"
-            surface="glass"
-            blurComponent={<HostBlur />}
+          <Segmented
             value={incomePeriod}
-            onValueChange={(next) => {
-              const period = next as IncomePeriod;
+            options={PERIODS}
+            onChange={(period) => {
               setIncomePeriod(period);
               setGrossText(grossFor(period));
             }}
             accessibilityLabel="Enter pay per year or per month"
-          >
-            <Tabs.Item value="year" label="Per year" />
-            <Tabs.Item value="month" label="Per month" />
-          </Tabs>
+          />
 
           <Input
             ref={grossRef}

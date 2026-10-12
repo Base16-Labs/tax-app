@@ -2,7 +2,6 @@
 import { useState, type ReactElement } from 'react';
 import { Linking, View } from 'react-native';
 import {
-  OutlineArrowCounterClockwise,
   OutlineCaretRight,
   OutlineCheck,
   OutlineCircleHalf,
@@ -53,7 +52,6 @@ export function SettingsScreen() {
 function SettingsHome({ onOpen }: { onOpen: (page: Page) => void }) {
   const t = useTokens();
   const { country } = useTax();
-  const { setCountry } = useSetup();
   const { appearance } = useAppearance();
   const current = APPEARANCES.find((a) => a.value === appearance)!;
   const icon = { color: t.colors.textSecondary, width: 22, height: 22 };
@@ -80,14 +78,6 @@ function SettingsHome({ onOpen }: { onOpen: (page: Page) => void }) {
         />
       </ListCard>
 
-      <ListCard>
-        <List.Row
-          leading={<OutlineArrowCounterClockwise {...icon} />}
-          title="Start over"
-          subtitle="Choose your country again"
-          onPress={() => setCountry(null)}
-        />
-      </ListCard>
 
       <View style={{ alignItems: 'center', gap: t.spacing[2], marginTop: t.spacing[6] }}>
         <Logo size={44} />
