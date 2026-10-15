@@ -25,6 +25,10 @@ Sources: gov.uk (2026/27 rates), IRS Rev. Proc. 2025-32, the SSA 2026 wage base 
 
 Take Home gives estimates, not tax advice.
 
+## Try it
+
+Take Home is available on TestFlight: [join the beta](TESTFLIGHT_PUBLIC_LINK). Install TestFlight from the App Store, open the link on your iPhone, and tap Accept, then Install.
+
 ## Getting started
 
 ```bash
@@ -50,6 +54,16 @@ src/
 components/ui/  Arlo UI components
 lib/arloui/     Arlo UI theme and tokens
 ```
+
+## Releasing a TestFlight build
+
+```bash
+npx eas-cli build -p ios --profile production --auto-submit
+```
+
+This builds in the cloud, bumps the build number and uploads to App Store Connect (app ID in `eas.json`). Apple processes the build in about 10 minutes, then add it to the External Testers group in App Store Connect → TestFlight. The first build of a new version goes through Beta App Review, which usually takes a day or two.
+
+The privacy policy is in [PRIVACY.md](PRIVACY.md).
 
 ## License
 
