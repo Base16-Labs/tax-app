@@ -27,7 +27,7 @@ Take Home gives estimates, not tax advice.
 
 ## Try it
 
-Take Home is available on TestFlight: [join the beta](TESTFLIGHT_PUBLIC_LINK). Install TestFlight from the App Store, open the link on your iPhone, and tap Accept, then Install.
+Take Home is available on TestFlight: [join the beta](https://testflight.apple.com/join/VXX1srCT). Install TestFlight from the App Store, open the link on your iPhone, and tap Accept, then Install.
 
 ## Getting started
 
